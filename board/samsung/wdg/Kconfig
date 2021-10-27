@@ -12,4 +12,15 @@ config SYS_SOC
 config SYS_CONFIG_NAME
 	default "s5p_wdg"
 
+#for include/configs/s5p_wdg.h
+config EVT1
+	bool
+	default y
+config MCP_SINGLE
+	bool
+	default y
+config CLK_1000_200_166_133
+	bool
+	default y
+
 endif

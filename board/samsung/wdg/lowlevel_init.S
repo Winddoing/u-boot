@@ -1,444 +1,665 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Memory Setup stuff - taken from blob memsetup.S
  *
- * Copyright (C) 2009 Samsung Electronics
- * Kyungmin Park <kyungmin.park@samsung.com>
+ * Copyright (C) 1999 2000 2001 Erik Mouw (J.A.K.Mouw@its.tudelft.nl) and
+ *                     Jan-Derk Bakker (J.D.Bakker@its.tudelft.nl)
+ *
+ * Modified for the Samsung SMDK2410 by
+ * (C) Copyright 2002
+ * David Mueller, ELSOFT AG, <d.mueller@elsoft.ch>
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
+
 
 #include <config.h>
-#include <asm/arch/cpu.h>
-#include <asm/arch/clock.h>
-#include <asm/arch/power.h>
+#include <version.h>
 
-/*
- * Register usages:
- *
- * r5 has zero always
- * r7 has S5PC100 GPIO base, 0xE0300000
- * r8 has real GPIO base, 0xE0300000, 0xE0200000 at S5PC100, S5PC110 repectively
- * r9 has Mobile DDR size, 1 means 1GiB, 2 means 2GiB and so on
- */
+#include <s5pc110.h>
+#include "qt210_val.h"
+
+_TEXT_BASE:
+	.word	CONFIG_SYS_TEXT_BASE
 
 	.globl lowlevel_init
 lowlevel_init:
-	mov	r11, lr
+	push	{lr}
 
-	/* r5 has always zero */
-	mov	r5, #0
+	/* check reset status  */
 
-	ldr	r7, =S5PC100_GPIO_BASE
-	ldr	r8, =S5PC100_GPIO_BASE
-	/* Read CPU ID */
-	ldr	r2, =S5PC110_PRO_ID
-	ldr	r0, [r2]
-	mov	r1, #0x00010000
-	and	r0, r0, r1
-	cmp	r0, r5
-	beq	100f
-	ldr	r8, =S5PC110_GPIO_BASE
-100:
-	/* Turn on KEY_LED_ON [GPJ4(1)] XMSMWEN */
-	cmp	r7, r8
-	beq	skip_check_didle			@ Support C110 only
-
-	ldr	r0, =S5PC110_RST_STAT
+	ldr	r0, =(ELFIN_CLOCK_POWER_BASE+RST_STAT_OFFSET)
 	ldr	r1, [r0]
-	and	r1, r1, #0x000D0000
-	cmp	r1, #(0x1 << 19)			@ DEEPIDLE_WAKEUP
-	beq	didle_wakeup
-	cmp	r7, r8
+	bic	r1, r1, #0xfff6ffff
+	cmp	r1, #0x10000
+	beq	wakeup_reset_pre
+	cmp	r1, #0x80000
+	beq	wakeup_reset_from_didle
 
-skip_check_didle:
-	addeq	r0, r8, #0x280				@ S5PC100_GPIO_J4
-	addne	r0, r8, #0x2C0				@ S5PC110_GPIO_J4
-	ldr	r1, [r0, #0x0]				@ GPIO_CON_OFFSET
-	bic	r1, r1, #(0xf << 4)			@ 1 * 4-bit
-	orr	r1, r1, #(0x1 << 4)
-	str	r1, [r0, #0x0]				@ GPIO_CON_OFFSET
-
-	ldr	r1, [r0, #0x4]				@ GPIO_DAT_OFFSET
-	bic	r1, r1, #(1 << 1)
-	str	r1, [r0, #0x4]				@ GPIO_DAT_OFFSET
-
-	/* Don't setup at s5pc100 */
-	beq	100f
-
-	/*
-	 * Initialize Async Register Setting for EVT1
-	 * Because we are setting EVT1 as the default value of EVT0,
-	 * setting EVT0 as well does not make things worse.
-	 * Thus, for the simplicity, we set for EVT0, too
-	 *
-	 * The "Async Registers" are:
-	 *	0xE0F0_0000
-	 *	0xE1F0_0000
-	 *	0xF180_0000
-	 *	0xF190_0000
-	 *	0xF1A0_0000
-	 *	0xF1B0_0000
-	 *	0xF1C0_0000
-	 *	0xF1D0_0000
-	 *	0xF1E0_0000
-	 *	0xF1F0_0000
-	 *	0xFAF0_0000
-	 */
-	ldr     r0, =0xe0f00000
-	ldr     r1, [r0]
-	bic     r1, r1, #0x1
-	str     r1, [r0]
-
-	ldr     r0, =0xe1f00000
-	ldr     r1, [r0]
-	bic     r1, r1, #0x1
-	str     r1, [r0]
-
-	ldr     r0, =0xf1800000
-	ldr     r1, [r0]
-	bic     r1, r1, #0x1
-	str     r1, [r0]
-
-	ldr     r0, =0xf1900000
-	ldr     r1, [r0]
-	bic     r1, r1, #0x1
-	str     r1, [r0]
-
-	ldr     r0, =0xf1a00000
-	ldr     r1, [r0]
-	bic     r1, r1, #0x1
-	str     r1, [r0]
-
-	ldr     r0, =0xf1b00000
-	ldr     r1, [r0]
-	bic     r1, r1, #0x1
-	str     r1, [r0]
-
-	ldr     r0, =0xf1c00000
-	ldr     r1, [r0]
-	bic     r1, r1, #0x1
-	str     r1, [r0]
-
-	ldr     r0, =0xf1d00000
-	ldr     r1, [r0]
-	bic     r1, r1, #0x1
-	str     r1, [r0]
-
-	ldr     r0, =0xf1e00000
-	ldr     r1, [r0]
-	bic     r1, r1, #0x1
-	str     r1, [r0]
-
-	ldr     r0, =0xf1f00000
-	ldr     r1, [r0]
-	bic     r1, r1, #0x1
-	str     r1, [r0]
-
-	ldr     r0, =0xfaf00000
-	ldr     r1, [r0]
-	bic     r1, r1, #0x1
-	str     r1, [r0]
-
-	/*
-	 * Diable ABB block to reduce sleep current at low temperature
-	 * Note that it's hidden register setup don't modify it
-	 */
-	ldr	r0, =0xE010C300
-	ldr	r1, =0x00800000
-	str	r1, [r0]
-
-100:
-	/* IO retension release */
-	ldreq	r0, =S5PC100_OTHERS			@ 0xE0108200
-	ldrne	r0, =S5PC110_OTHERS			@ 0xE010E000
+	/* IO Retention release */
+	ldr	r0, =(ELFIN_CLOCK_POWER_BASE + OTHERS_OFFSET)
 	ldr	r1, [r0]
-	ldreq	r2, =(1 << 31)				@ IO_RET_REL
-	ldrne	r2, =((1 << 31) | (1 << 30) | (1 << 29) | (1 << 28))
+	ldr	r2, =IO_RET_REL
 	orr	r1, r1, r2
-	/* Do not release retention here for S5PC110 */
-	streq	r1, [r0]
+	str	r1, [r0]
 
 	/* Disable Watchdog */
-	ldreq	r0, =S5PC100_WATCHDOG_BASE		@ 0xEA200000
-	ldrne	r0, =S5PC110_WATCHDOG_BASE		@ 0xE2700000
-	str	r5, [r0]
-
-	/* setting SRAM */
-	ldreq	r0, =S5PC100_SROMC_BASE
-	ldrne	r0, =S5PC110_SROMC_BASE
-	ldr	r1, =0x9
+	ldr	r0, =ELFIN_WATCHDOG_BASE	/* 0xE2700000 */
+	mov	r1, #0
 	str	r1, [r0]
 
-	/* S5PC100 has 3 groups of interrupt sources */
-	ldreq	r0, =S5PC100_VIC0_BASE			@ 0xE4000000
-	ldrne	r0, =S5PC110_VIC0_BASE			@ 0xF2000000
-	add	r1, r0, #0x00100000
-	add	r2, r0, #0x00200000
+	/* SRAM(2MB) init for SMDKC110 */
+	/* GPJ1 SROM_ADDR_16to21 */
+	ldr	r0, =ELFIN_GPIO_BASE
 
-	/* Disable all interrupts (VIC0, VIC1 and VIC2) */
-	mvn	r3, #0x0
-	str	r3, [r0, #0x14]				@ INTENCLEAR
-	str	r3, [r1, #0x14]				@ INTENCLEAR
-	str	r3, [r2, #0x14]				@ INTENCLEAR
-
-	/* Set all interrupts as IRQ */
-	str	r5, [r0, #0xc]				@ INTSELECT
-	str	r5, [r1, #0xc]				@ INTSELECT
-	str	r5, [r2, #0xc]				@ INTSELECT
-
-	/* Pending Interrupt Clear */
-	str	r5, [r0, #0xf00]			@ INTADDRESS
-	str	r5, [r1, #0xf00]			@ INTADDRESS
-	str	r5, [r2, #0xf00]			@ INTADDRESS
-
-	/* for UART */
-	bl	uart_asm_init
-
-	bl	internal_ram_init
-
-	cmp	r7, r8
-	/* Clear wakeup status register */
-	ldreq	r0, =S5PC100_WAKEUP_STAT
-	ldrne	r0, =S5PC110_WAKEUP_STAT
-	ldr	r1, [r0]
-	str	r1, [r0]
-
-	/* IO retension release */
-	ldreq	r0, =S5PC100_OTHERS			@ 0xE0108200
-	ldrne	r0, =S5PC110_OTHERS			@ 0xE010E000
-	ldr	r1, [r0]
-	ldreq	r2, =(1 << 31)				@ IO_RET_REL
-	ldrne	r2, =((1 << 31) | (1 << 30) | (1 << 29) | (1 << 28))
+	ldr	r1, [r0, #GPJ1CON_OFFSET]
+	bic	r1, r1, #0xFFFFFF
+	ldr	r2, =0x444444
 	orr	r1, r1, r2
+	str	r1, [r0, #GPJ1CON_OFFSET]
+
+	ldr	r1, [r0, #GPJ1PUD_OFFSET]
+	ldr	r2, =0x3ff
+	bic	r1, r1, r2
+	str	r1, [r0, #GPJ1PUD_OFFSET]
+
+	/* GPJ4 SROM_ADDR_16to21 */
+	ldr	r1, [r0, #GPJ4CON_OFFSET]
+	bic	r1, r1, #(0xf<<16)
+	ldr	r2, =(0x4<<16)
+	orr	r1, r1, r2
+	str	r1, [r0, #GPJ4CON_OFFSET]
+
+	ldr	r1, [r0, #GPJ4PUD_OFFSET]
+	ldr	r2, =(0x3<<8)
+	bic	r1, r1, r2
+	str	r1, [r0, #GPJ4PUD_OFFSET]
+
+
+	/* CS0 - 16bit sram, enable nBE, Byte base address */
+	ldr	r0, =ELFIN_SROM_BASE	/* 0xE8000000 */
+	mov	r1, #0x1
 	str	r1, [r0]
 
-	b	1f
-
-didle_wakeup:
-	/* Wait when APLL is locked */
-	ldr	r0, =0xE0100100			@ S5PC110_APLL_CON
-lockloop:
+#if 0
+	/* PS_HOLD pin(GPH0_0) set to high */
+	ldr	r0, =(ELFIN_CLOCK_POWER_BASE + PS_HOLD_CONTROL_OFFSET)
 	ldr	r1, [r0]
-	and	r1, r1, #(1 << 29)
-	cmp	r1, #(1 << 29)
-	bne	lockloop
+	orr	r1, r1, #0x300
+	orr	r1, r1, #0x1
+	str	r1, [r0]
+#endif
 
-	ldr	r0, =S5PC110_INFORM0
-	ldr	r1, [r0]
-	mov	pc, r1
-	nop
-	nop
-	nop
-	nop
-	nop
+	/* when we already run in ram, we don't need to relocate U-Boot.
+	 * and actually, memory controller must be configured before U-Boot
+	 * is running in ram.
+	 */
+	ldr	r0, =0x00ffffff
+	bic	r1, pc, r0		/* r0 <- current base addr of code */
+	ldr	r2, _TEXT_BASE		/* r1 <- original base addr in ram */
+	bic	r2, r2, r0		/* r0 <- current base addr of code */
+	cmp     r1, r2                  /* compare r0, r1                  */
+	beq     1f			/* r0 == r1 then skip sdram init   */
+
+	/* init system clock */
+	bl system_clock_init
+
+	/* Memory initialize */
+	bl mem_ctrl_asm_init
 
 1:
-	mov	lr, r11
-	mov	pc, lr
+	/* for UART */
+	bl uart_asm_init
+
+	bl tzpc_init
+
+#if defined(CONFIG_ONENAND)
+	bl onenandcon_init
+#endif
+
+#if defined(CONFIG_NAND)
+	/* simple init for NAND */
+	bl nand_asm_init
+#endif
+
+	/* check reset status  */
+
+	ldr	r0, =(ELFIN_CLOCK_POWER_BASE+RST_STAT_OFFSET)
+	ldr	r1, [r0]
+	bic	r1, r1, #0xfffeffff
+	cmp	r1, #0x10000
+	beq	wakeup_reset_pre
+
+	/* ABB disable */
+	ldr	r0, =0xE010C300
+	orr	r1, r1, #(0x1<<23)
+	str	r1, [r0]
+
+	/* Print 'K' */
+	ldr	r0, =ELFIN_UART_CONSOLE_BASE
+	ldr	r1, =0x4b4b4b4b
+	str	r1, [r0, #UTXH_OFFSET]
+
+	pop	{pc}
+
+wakeup_reset_from_didle:
+	/* Wait when APLL is locked */
+	ldr	r0, =ELFIN_CLOCK_POWER_BASE
+lockloop:
+	ldr	r1, [r0, #APLL_CON0_OFFSET]
+	and	r1, r1, #(1<<29)
+	cmp	r1, #(1<<29)
+	bne 	lockloop
+	beq	exit_wakeup
+
+wakeup_reset_pre:
+	mrc	p15, 0, r1, c1, c0, 1	@Read CP15 Auxiliary control register
+	and	r1, r1, #0x80000000	@Check L2RD is disable or not
+	cmp	r1, #0x80000000
+	bne	wakeup_reset		@if L2RD is not disable jump to wakeup_reset
+
+	bl	disable_l2cache
+	bl	v7_flush_dcache_all
+	bl	enable_l2cache
+
+wakeup_reset:
+	/* init system clock */
+	bl system_clock_init
+	bl mem_ctrl_asm_init
+	bl tzpc_init
+#if defined(CONFIG_ONENAND)
+	bl onenandcon_init
+#endif
+#if defined(CONFIG_NAND)
+	bl nand_asm_init
+#endif
+
+exit_wakeup:
+	/*Load return address and jump to kernel*/
+	ldr	r0, =(INF_REG_BASE+INF_REG0_OFFSET)
+	ldr	r1, [r0]	/* r1 = physical address of s5pc110_cpu_resume function*/
+
+	mov	pc, r1		/*Jump to kernel */
+	nop
+	nop
 
 /*
  * system_clock_init: Initialize core clock and bus clock.
  * void system_clock_init(void)
  */
 system_clock_init:
-	ldr	r0, =S5PC110_CLOCK_BASE		@ 0xE0100000
 
-	/* Check S5PC100 */
-	cmp	r7, r8
-	bne	110f
-100:
-	/* Set Lock Time */
-	ldr	r1, =0xe10			@ Locktime : 0xe10 = 3600
-	str	r1, [r0, #0x000]		@ S5PC100_APLL_LOCK
-	str	r1, [r0, #0x004]		@ S5PC100_MPLL_LOCK
-	str	r1, [r0, #0x008]		@ S5PC100_EPLL_LOCK
-	str	r1, [r0, #0x00C]		@ S5PC100_HPLL_LOCK
+	ldr	r0, =ELFIN_CLOCK_POWER_BASE	@0xe0100000
 
-	/* S5P_APLL_CON */
-	ldr	r1, =0x81bc0400		@ SDIV 0, PDIV 4, MDIV 444 (1333MHz)
-	str	r1, [r0, #0x100]
-	/* S5P_MPLL_CON */
-	ldr	r1, =0x80590201		@ SDIV 1, PDIV 2, MDIV 89 (267MHz)
-	str	r1, [r0, #0x104]
-	/* S5P_EPLL_CON */
-	ldr	r1, =0x80870303		@ SDIV 3, PDIV 3, MDIV 135 (67.5MHz)
-	str	r1, [r0, #0x108]
-	/* S5P_HPLL_CON */
-	ldr	r1, =0x80600603		@ SDIV 3, PDIV 6, MDIV 96
-	str	r1, [r0, #0x10C]
+	/* Set Mux to FIN */
+	ldr	r1, =0x0
+	str	r1, [r0, #CLK_SRC0_OFFSET]
 
-	ldr     r1, [r0, #0x300]
-	ldr     r2, =0x00003fff
-	bic     r1, r1, r2
-	ldr     r2, =0x00011301
+	ldr	r1,	=APLL_LOCKTIME_VAL
+	str	r1,	[r0, #APLL_LOCK_OFFSET]
 
+	/* Disable PLL */
+	ldr	r1, =0x0
+	str	r1, [r0, #APLL_CON0_OFFSET]
+	ldr	r1, =0x0
+	str	r1, [r0, #MPLL_CON_OFFSET]
+
+	ldr	r1, =0x0
+	str	r1, [r0, #MPLL_CON_OFFSET]
+
+	ldr   	r1, [r0, #CLK_DIV0_OFFSET]
+	ldr	r2, =CLK_DIV0_MASK
+	bic	r1, r1, r2
+
+	ldr	r2, =CLK_DIV0_VAL
 	orr	r1, r1, r2
-	str	r1, [r0, #0x300]
-	ldr     r1, [r0, #0x304]
-	ldr     r2, =0x00011110
-	orr     r1, r1, r2
-	str     r1, [r0, #0x304]
-	ldr     r1, =0x00000001
-	str     r1, [r0, #0x308]
+	str	r1, [r0, #CLK_DIV0_OFFSET]
 
-	/* Set Source Clock */
-	ldr	r1, =0x00001111			@ A, M, E, HPLL Muxing
-	str	r1, [r0, #0x200]		@ S5PC1XX_CLK_SRC0
+	ldr	r1, =APLL_VAL
+	str	r1, [r0, #APLL_CON0_OFFSET]
 
-	b	200f
-110:
-	ldr	r0, =0xE010C000			@ S5PC110_PWR_CFG
+	ldr	r1, =MPLL_VAL
+	str	r1, [r0, #MPLL_CON_OFFSET]
 
-	/* Set OSC_FREQ value */
-	ldr	r1, =0xf
-	str	r1, [r0, #0x100]		@ S5PC110_OSC_FREQ
-
-	/* Set MTC_STABLE value */
-	ldr	r1, =0xffffffff
-	str	r1, [r0, #0x110]		@ S5PC110_MTC_STABLE
-
-	/* Set CLAMP_STABLE value */
-	ldr	r1, =0x3ff03ff
-	str	r1, [r0, #0x114]		@ S5PC110_CLAMP_STABLE
-
-	ldr	r0, =S5PC110_CLOCK_BASE		@ 0xE0100000
-
-	/* Set Clock divider */
-	ldr	r1, =0x14131330			@ 1:1:4:4, 1:4:5
-	str	r1, [r0, #0x300]
-	ldr	r1, =0x11110111			@ UART[3210]: MMC[3210]
-	str	r1, [r0, #0x310]
-
-	/* Set Lock Time */
-	ldr	r1, =0x2cf			@ Locktime : 30us
-	str	r1, [r0, #0x000]		@ S5PC110_APLL_LOCK
-	ldr	r1, =0xe10			@ Locktime : 0xe10 = 3600
-	str	r1, [r0, #0x008]		@ S5PC110_MPLL_LOCK
-	str	r1, [r0, #0x010]		@ S5PC110_EPLL_LOCK
-	str	r1, [r0, #0x020]		@ S5PC110_VPLL_LOCK
-
-	/* S5PC110_APLL_CON */
-	ldr	r1, =0x80C80601			@ 800MHz
-	str	r1, [r0, #0x100]
-	/* S5PC110_MPLL_CON */
-	ldr	r1, =0x829B0C01			@ 667MHz
-	str	r1, [r0, #0x108]
-	/* S5PC110_EPLL_CON */
-	ldr	r1, =0x80600602			@  96MHz VSEL 0 P 6 M 96 S 2
-	str	r1, [r0, #0x110]
-	/* S5PC110_VPLL_CON */
-	ldr	r1, =0x806C0603			@  54MHz
-	str	r1, [r0, #0x120]
-
-	/* Set Source Clock */
-	ldr	r1, =0x10001111			@ A, M, E, VPLL Muxing
-	str	r1, [r0, #0x200]		@ S5PC1XX_CLK_SRC0
-
-	/* OneDRAM(DMC0) clock setting */
-	ldr	r1, =0x01000000			@ ONEDRAM_SEL[25:24] 1 SCLKMPLL
-	str	r1, [r0, #0x218]		@ S5PC110_CLK_SRC6
-	ldr	r1, =0x30000000			@ ONEDRAM_RATIO[31:28] 3 + 1
-	str	r1, [r0, #0x318]		@ S5PC110_CLK_DIV6
-
-	/* XCLKOUT = XUSBXTI 24MHz */
-	add	r2, r0, #0xE000			@ S5PC110_OTHERS
-	ldr     r1, [r2]
-	orr	r1, r1, #(0x3 << 8)		@ CLKOUT[9:8] 3 XUSBXTI
-	str	r1, [r2]
-
-	/* CLK_IP0 */
-	ldr	r1, =0x8fefeeb			@ DMC[1:0] PDMA0[3] IMEM[5]
-	str	r1, [r0, #0x460]		@ S5PC110_CLK_IP0
-
-	/* CLK_IP1 */
-	ldr	r1, =0xe9fdf0f9			@ FIMD[0] USBOTG[16]
-						@ NANDXL[24]
-	str	r1, [r0, #0x464]		@ S5PC110_CLK_IP1
-
-	/* CLK_IP2 */
-	ldr	r1, =0xf75f7fc			@ CORESIGHT[8] MODEM[9]
-						@ HOSTIF[10] HSMMC0[16]
-						@ HSMMC2[18] VIC[27:24]
-	str	r1, [r0, #0x468]		@ S5PC110_CLK_IP2
-
-	/* CLK_IP3 */
-	ldr	r1, =0x8eff038c			@ I2C[8:6]
-						@ SYSTIMER[16] UART0[17]
-						@ UART1[18] UART2[19]
-						@ UART3[20] WDT[22]
-						@ PWM[23] GPIO[26] SYSCON[27]
-	str	r1, [r0, #0x46c]		@ S5PC110_CLK_IP3
-
-	/* CLK_IP4 */
-	ldr	r1, =0xfffffff1			@ CHIP_ID[0] TZPC[8:5]
-	str	r1, [r0, #0x470]		@ S5PC110_CLK_IP3
-
-200:
-	/* wait at least 200us to stablize all clock */
-	mov	r2, #0x10000
-1:	subs	r2, r2, #1
+	ldr	r1, =VPLL_VAL
+	str	r1, [r0, #VPLL_CON_OFFSET]
+#if defined(CONFIG_EVT1)
+	ldr	r1, =AFC_ON
+	str	r1, [r0, #APLL_CON1_OFFSET]
+#endif
+	mov	r1, #0x10000
+1:	subs	r1, r1, #1
 	bne	1b
+
+	ldr	r1, [r0, #CLK_SRC0_OFFSET]
+	ldr	r2, =0x10001111
+	orr	r1, r1, r2
+	str	r1, [r0, #CLK_SRC0_OFFSET]
+
+#if defined(CONFIG_MCP_AC)
+
+	/* CLK_SRC6[25:24] -> OneDRAM clock sel = MPLL */
+	ldr	r1, [r0, #CLK_SRC6_OFFSET]
+	bic	r1, r1, #(0x3<<24)
+	orr	r1, r1, #0x01000000
+	str	r1, [r0, #CLK_SRC6_OFFSET]
+
+	/* CLK_DIV6[31:28] -> 4=1/5, 3=1/4(166MHZ@667MHz), 2=1/3 */
+	ldr	r1, [r0, #CLK_DIV6_OFFSET]
+	bic	r1, r1, #(0xF<<28)
+	bic	r1, r1, #(0x7<<12)	@; ONENAND_RATIO: 0
+	orr	r1, r1, #0x30000000
+	str	r1, [r0, #CLK_DIV6_OFFSET]
+
+#elif defined (CONFIG_MCP_H)
+
+	/* CLK_SRC6[25:24] -> OneDRAM clock sel = 00:SCLKA2M, 01:SCLKMPLL */
+	ldr	r1, [r0, #CLK_SRC6_OFFSET]
+	bic	r1, r1, #(0x3<<24)
+	orr	r1, r1, #0x00000000
+	str	r1, [r0, #CLK_SRC6_OFFSET]
+
+	/* CLK_DIV6[31:28] -> 4=1/5, 3=1/4(166MHZ@667MHz), 2=1/3 */
+	ldr	r1, [r0, #CLK_DIV6_OFFSET]
+	bic	r1, r1, #(0xF<<28)
+	bic	r1, r1, #(0x7<<12)	@; ONENAND_RATIO: 0
+	orr	r1, r1, #0x00000000
+	str	r1, [r0, #CLK_DIV6_OFFSET]
+
+#elif defined (CONFIG_MCP_B) || defined (CONFIG_MCP_D)
+
+	/* CLK_SRC6[25:24] -> OneDRAM clock sel = 00:SCLKA2M, 01:SCLKMPLL */
+	ldr	r1, [r0, #CLK_SRC6_OFFSET]
+	bic	r1, r1, #(0x3<<24)
+	orr	r1, r1, #0x01000000
+	str	r1, [r0, #CLK_SRC6_OFFSET]
+
+	/* CLK_DIV6[31:28] -> 4=1/5, 3=1/4(166MHZ@667MHz), 2=1/3 */
+	ldr	r1, [r0, #CLK_DIV6_OFFSET]
+	bic	r1, r1, #(0xF<<28)
+	bic	r1, r1, #(0x7<<12)	@; ONENAND_RATIO: 0
+	orr	r1, r1, #0x30000000
+	str	r1, [r0, #CLK_DIV6_OFFSET]
+
+#elif defined (CONFIG_MCP_SINGLE)
+
+	/* CLK_DIV6 */
+	ldr	r1, [r0, #CLK_DIV6_OFFSET]
+	bic	r1, r1, #(0x7<<12)	@; ONENAND_RATIO: 0
+	str	r1, [r0, #CLK_DIV6_OFFSET]
+
+#endif
 
 	mov	pc, lr
 
-internal_ram_init:
-	ldreq	r0, =0xE3800000
-	ldrne	r0, =0xF1500000
-	ldr	r1, =0x0
-	str	r1, [r0]
+
+/*
+ * uart_asm_init: Initialize UART in asm mode, 115200bps fixed.
+ * void uart_asm_init(void)
+ */
+uart_asm_init:
+
+	/* set GPIO(GPA) to enable UART */
+	@ GPIO setting for UART
+	ldr	r0, =ELFIN_GPIO_BASE
+	ldr	r1, =0x22222222
+	str   	r1, [r0, #GPA0CON_OFFSET]
+
+	ldr     r1, =0x2222
+	str     r1, [r0, #GPA1CON_OFFSET]
+
+	// HP V210 use. SMDK not use.
+#if defined(CONFIG_VOGUES)
+	ldr    r1, =0x100
+	str    r1, [r0, #GPC0CON_OFFSET]
+
+	ldr    r1, =0x4
+	str    r1, [r0, #GPC0DAT_OFFSET]
+#endif
+
+	ldr	r0, =ELFIN_UART_CONSOLE_BASE		@0xEC000000
+	mov	r1, #0x0
+	str	r1, [r0, #UFCON_OFFSET]
+	str	r1, [r0, #UMCON_OFFSET]
+
+	mov	r1, #0x3
+	str	r1, [r0, #ULCON_OFFSET]
+
+	ldr	r1, =0x3c5
+	str	r1, [r0, #UCON_OFFSET]
+
+	ldr	r1, =UART_UBRDIV_VAL
+	str	r1, [r0, #UBRDIV_OFFSET]
+
+	ldr	r1, =UART_UDIVSLOT_VAL
+	str	r1, [r0, #UDIVSLOT_OFFSET]
+
+	ldr	r1, =0x4f4f4f4f
+	str	r1, [r0, #UTXH_OFFSET]		@'O'
 
 	mov	pc, lr
 
 /*
- * uart_asm_init: Initialize UART's pins
+ * Nand Interface Init for SMDKC110
  */
-uart_asm_init:
-	/* set GPIO to enable UART0-UART4 */
-	mov	r0, r8
-	ldr	r1, =0x22222222
-	str	r1, [r0, #0x0]			@ S5PC100_GPIO_A0_OFFSET
-	ldr	r1, =0x00002222
-	str	r1, [r0, #0x20]			@ S5PC100_GPIO_A1_OFFSET
+nand_asm_init:
 
-	/* Check S5PC100 */
-	cmp	r7, r8
-	bne	110f
+	/* Setting GPIO for NAND */
+	/* This setting is NAND initialze code at booting time in iROM. */
 
-	/* UART_SEL GPK0[5] at S5PC100 */
-	add	r0, r8, #0x2A0			@ S5PC100_GPIO_K0_OFFSET
-	ldr	r1, [r0, #0x0]			@ S5PC1XX_GPIO_CON_OFFSET
-	bic	r1, r1, #(0xf << 20)		@ 20 = 5 * 4-bit
-	orr	r1, r1, #(0x1 << 20)		@ Output
-	str	r1, [r0, #0x0]			@ S5PC1XX_GPIO_CON_OFFSET
+	ldr	r0, =ELFIN_GPIO_BASE
 
-	ldr	r1, [r0, #0x8]			@ S5PC1XX_GPIO_PULL_OFFSET
-	bic	r1, r1, #(0x3 << 10)		@ 10 = 5 * 2-bit
-	orr	r1, r1, #(0x2 << 10)		@ Pull-up enabled
-	str	r1, [r0, #0x8]			@ S5PC1XX_GPIO_PULL_OFFSET
+	ldr	r1, [r0, #MP01CON_OFFSET]
+	bic	r1, r1, #(0xf<<8)
+	orr	r1, r1, #(0x3<<8)
+	str	r1, [r0, #MP01CON_OFFSET]
 
-	ldr	r1, [r0, #0x4]			@ S5PC1XX_GPIO_DAT_OFFSET
-	orr	r1, r1, #(1 << 5)		@ 5 = 5 * 1-bit
-	str	r1, [r0, #0x4]			@ S5PC1XX_GPIO_DAT_OFFSET
+	ldr	r1, [r0, #MP01PUD_OFFSET]
+	bic	r1, r1, #(0x3<<4)
+	str	r1, [r0, #MP01PUD_OFFSET]
 
-	b	200f
-110:
-	/*
-	 * Note that the following address
-	 * 0xE020'0360 is reserved address at S5PC100
-	 */
-	/* UART_SEL MP0_5[7] at S5PC110 */
-	add	r0, r8, #0x360			@ S5PC110_GPIO_MP0_5_OFFSET
-	ldr	r1, [r0, #0x0]			@ S5PC1XX_GPIO_CON_OFFSET
-	bic	r1, r1, #(0xf << 28)		@ 28 = 7 * 4-bit
-	orr	r1, r1, #(0x1 << 28)		@ Output
-	str	r1, [r0, #0x0]			@ S5PC1XX_GPIO_CON_OFFSET
+	ldr	r1, [r0, #MP03CON_OFFSET]
+	bic	r1, r1, #0xFFFFFF
+	ldr	r2, =0x22222222
+	orr	r1, r1, r2
+	str	r1, [r0, #MP03CON_OFFSET]
 
-	ldr	r1, [r0, #0x8]			@ S5PC1XX_GPIO_PULL_OFFSET
-	bic	r1, r1, #(0x3 << 14)		@ 14 = 7 * 2-bit
-	orr	r1, r1, #(0x2 << 14)		@ Pull-up enabled
-	str	r1, [r0, #0x8]			@ S5PC1XX_GPIO_PULL_OFFSET
+	ldr	r1, [r0, #MP03PUD_OFFSET]
+	ldr	r2, =0x3fff
+	bic	r1, r1, r2
+	str	r1, [r0, #MP03PUD_OFFSET]
 
-	ldr	r1, [r0, #0x4]			@ S5PC1XX_GPIO_DAT_OFFSET
-	orr	r1, r1, #(1 << 7)		@ 7 = 7 * 1-bit
-	str	r1, [r0, #0x4]			@ S5PC1XX_GPIO_DAT_OFFSET
-200:
+	ldr	r0, =ELFIN_NAND_BASE
+
+	ldr	r1, [r0, #NFCONF_OFFSET]
+	ldr	r2, =0x777F
+	bic	r1, r1, r2
+	ldr	r2, =NFCONF_VAL
+	orr	r1, r1, r2
+	str	r1, [r0, #NFCONF_OFFSET]
+
+	ldr	r1, [r0, #NFCONT_OFFSET]
+	ldr	r2, =0x707C7
+	bic	r1, r1, r2
+	ldr	r2, =NFCONT_VAL
+	orr	r1, r1, r2
+	str	r1, [r0, #NFCONT_OFFSET]
+
+	ldr	r1, [r0, #NFCONF_OFFSET]
+	orr	r1, r1, #0x70
+	orr	r1, r1, #0x7700
+	str     r1, [r0, #NFCONF_OFFSET]
+
+	ldr	r1, [r0, #NFCONT_OFFSET]
+	orr	r1, r1, #0x03
+	str     r1, [r0, #NFCONT_OFFSET]
+
 	mov	pc, lr
+
+/*
+ * Setting TZPC[TrustZone Protection Controller]
+ */
+tzpc_init:
+
+	ldr	r0, =ELFIN_TZPC0_BASE
+	mov	r1, #0x0
+	str	r1, [r0]
+	mov	r1, #0xff
+	str	r1, [r0, #TZPC_DECPROT0SET_OFFSET]
+	str	r1, [r0, #TZPC_DECPROT1SET_OFFSET]
+	str	r1, [r0, #TZPC_DECPROT2SET_OFFSET]
+
+	ldr 	r0, =ELFIN_TZPC1_BASE
+	str	r1, [r0, #TZPC_DECPROT0SET_OFFSET]
+	str	r1, [r0, #TZPC_DECPROT1SET_OFFSET]
+	str	r1, [r0, #TZPC_DECPROT2SET_OFFSET]
+
+	ldr	r0, =ELFIN_TZPC2_BASE
+	str	r1, [r0, #TZPC_DECPROT0SET_OFFSET]
+	str	r1, [r0, #TZPC_DECPROT1SET_OFFSET]
+	str	r1, [r0, #TZPC_DECPROT2SET_OFFSET]
+	str	r1, [r0, #TZPC_DECPROT3SET_OFFSET]
+
+	ldr	r0, =ELFIN_TZPC3_BASE
+	str	r1, [r0, #TZPC_DECPROT0SET_OFFSET]
+	str	r1, [r0, #TZPC_DECPROT1SET_OFFSET]
+	str	r1, [r0, #TZPC_DECPROT2SET_OFFSET]
+
+	mov	pc, lr
+
+/*
+ * OneNAND Interface Init
+ */
+onenandcon_init:
+
+	@; GPIO setting for OneNAND
+	ldr	r0, =ELFIN_GPIO_BASE	@0xE0200000
+	ldr	r1, [r0, #MP01CON_OFFSET]
+	orr	r1, r1, #0x00550000
+	str	r1, [r0, #MP01CON_OFFSET]
+
+	ldr	r1, [r0, #MP03CON_OFFSET]
+	orr	r1, r1, #0x0550
+	orr	r1, r1, #0x00550000
+	str	r1, [r0, #MP03CON_OFFSET]
+
+	ldr	r1, =0xFFFF
+	str	r1, [r0, #MP01DRV_SR_OFFSET]
+	str	r1, [r0, #MP03DRV_SR_OFFSET]
+	str	r1, [r0, #MP06DRV_SR_OFFSET]
+	str	r1, [r0, #MP07DRV_SR_OFFSET]
+
+wait_orwb:
+	@; Read ONENAND_IF_STATUS
+	ldr	r0, =ELFIN_ONENANDCON_BASE	@; 0xB0600000
+	ldr	r1, [r0, #ONENAND_IF_STATUS_OFFSET]
+	bic	r1, r1, #0xFFFFFFFE
+	cmp	r1, #0x0
+
+	@; ORWB != 0x0
+	bne	wait_orwb
+
+	@; write new configuration to onenand system configuration1 register
+	ldr	r1, =0xF006			@; Sync.
+	ldr	r2, =(ELFIN_ONENAND_BASE+0x1E442)	@; 0x1E442(REG_SYS_CONF1)
+	strh	r1, [r2]
+
+	@; read one dummy halfword
+	ldrh	r1, [r2]
+	ldrh	r1, [r2]
+
+	@; write new configuration to ONENAND_IF_CTRL
+	ldr	r0, =ELFIN_ONENANDCON_BASE	@; 0xB0600000
+	@;ldr	r1, =0x2F006			@; ONENAND_IF_CTRL_REG_VAL (GCE off)
+	ldr	r1, =0x402F006			@; ONENAND_IF_CTRL_REG_VAL (GCE on)
+	str	r1, [r0, #ONENAND_IF_CTRL_OFFSET]
+
+	mov	pc, lr
+
+
+#ifdef CONFIG_ENABLE_MMU
+
+	#ifdef CONFIG_MCP_SINGLE
+/*
+ * MMU Table for SMDKC110
+ * 0x0000_0000 -- 0xBFFF_FFFF => Not Allowed
+ * 0xB000_0000 -- 0xB7FF_FFFF => A:0xB000_0000 -- 0xB7FF_FFFF
+ * 0xC000_0000 -- 0xC7FF_FFFF => A:0x3000_0000 -- 0x37FF_FFFF
+ * 0xC800_0000 -- 0xDFFF_FFFF => Not Allowed
+ * 0xE000_0000 -- 0xFFFF_FFFF => A:0xE000_0000 -- 0XFFFF_FFFF
+ */
+
+	/* form a first-level section entry */
+.macro FL_SECTION_ENTRY base,ap,d,c,b
+	.word (\base << 20) | (\ap << 10) | \
+	      (\d << 5) | (1<<4) | (\c << 3) | (\b << 2) | (1<<1)
+.endm
+.section .mmudata, "a"
+	.align 14
+	// the following alignment creates the mmu table at address 0x4000.
+	.globl mmu_table
+mmu_table:
+	.set __base,0
+	// Access for iRAM
+	.rept 0x100
+	FL_SECTION_ENTRY __base,3,0,0,0
+	.set __base,__base+1
+	.endr
+
+	// Not Allowed
+	.rept 0x200 - 0x100
+	.word 0x00000000
+	.endr
+
+	.set __base,0x200
+	// should be accessed
+	.rept 0x600 - 0x200
+	FL_SECTION_ENTRY __base,3,0,1,1
+	.set __base,__base+1
+	.endr
+
+	.rept 0x800 - 0x600
+	.word 0x00000000
+	.endr
+
+	.set __base,0x800
+	// should be accessed
+	.rept 0xb00 - 0x800
+	FL_SECTION_ENTRY __base,3,0,0,0
+	.set __base,__base+1
+	.endr
+
+/*	.rept 0xc00 - 0xb00
+	.word 0x00000000
+	.endr */
+
+	.set __base,0xB00
+	.rept 0xc00 - 0xb00
+	FL_SECTION_ENTRY __base,3,0,0,0
+	.set __base,__base+1
+	.endr
+
+	.set __base,0x200
+	// 256MB for SDRAM with cacheable
+	.rept 0xD00 - 0xC00
+	FL_SECTION_ENTRY __base,3,0,1,1
+	.set __base,__base+1
+	.endr
+
+	// access is not allowed.
+	@.rept 0xD00 - 0xC80
+	@.word 0x00000000
+	@.endr
+
+	.set __base,0xD00
+	// 1:1 mapping for debugging with non-cacheable
+	.rept 0x1000 - 0xD00
+	FL_SECTION_ENTRY __base,3,0,0,0
+	.set __base,__base+1
+	.endr
+
+	#else	// CONFIG_MCP_AC, CONFIG_MCP_H, CONFIG_MCP_B
+
+/*
+ * MMU Table for SMDKC110
+ * 0x0000_0000 -- 0xBFFF_FFFF => Not Allowed
+ * 0xB000_0000 -- 0xB7FF_FFFF => A:0xB000_0000 -- 0xB7FF_FFFF
+ * 0xC000_0000 -- 0xC7FF_FFFF => A:0x3000_0000 -- 0x37FF_FFFF
+ * 0xC800_0000 -- 0xDFFF_FFFF => Not Allowed
+ * 0xE000_0000 -- 0xFFFF_FFFF => A:0xE000_0000 -- 0XFFFF_FFFF
+ */
+
+	/* form a first-level section entry */
+.macro FL_SECTION_ENTRY base,ap,d,c,b
+	.word (\base << 20) | (\ap << 10) | \
+	      (\d << 5) | (1<<4) | (\c << 3) | (\b << 2) | (1<<1)
+.endm
+.section .mmudata, "a"
+	.align 14
+	// the following alignment creates the mmu table at address 0x4000.
+	.globl mmu_table
+mmu_table:
+	.set __base,0
+	// Access for iRAM
+	.rept 0x100
+	FL_SECTION_ENTRY __base,3,0,0,0
+	.set __base,__base+1
+	.endr
+
+	// Not Allowed
+	.rept 0x300 - 0x100
+	.word 0x00000000
+	.endr
+
+	.set __base,0x300
+	// should be accessed
+	.rept 0x350 - 0x300
+	FL_SECTION_ENTRY __base,3,0,1,1
+	.set __base,__base+1
+	.endr
+
+	// Not Allowed
+	.rept 0x400 - 0x350
+	.word 0x00000000
+	.endr
+
+	.set __base,0x400
+	// should be accessed
+	.rept 0x500 - 0x400
+	FL_SECTION_ENTRY __base,3,0,1,1
+	.set __base,__base+1
+	.endr
+
+	.rept 0x800 - 0x500
+	.word 0x00000000
+	.endr
+
+	.set __base,0x800
+	// should be accessed
+	.rept 0xb00 - 0x800
+	FL_SECTION_ENTRY __base,3,0,0,0
+	.set __base,__base+1
+	.endr
+
+	.set __base,0xB00
+	.rept 0xc00 - 0xb00
+	FL_SECTION_ENTRY __base,3,0,0,0
+	.set __base,__base+1
+	.endr
+
+	.set __base,0x300
+	// 80MB for SDRAM with cacheable
+	.rept 0xC50 - 0xC00
+	FL_SECTION_ENTRY __base,3,0,1,1
+	.set __base,__base+1
+	.endr
+
+	// Not Allowed
+	.rept 0xD00 - 0xC50
+	.word 0x00000000
+	.endr
+
+	.set __base,0xD00
+	// 1:1 mapping for debugging with non-cacheable
+	.rept 0x1000 - 0xD00
+	FL_SECTION_ENTRY __base,3,0,0,0
+	.set __base,__base+1
+	.endr
+	#endif
+#endif
+

@@ -11,6 +11,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <compiler.h>
+#include <generated/autoconf.h>
 
 #define CHECKSUM_OFFSET		(14*1024-4)
 #define FILE_PERM		(S_IRUSR | S_IWUSR | S_IRGRP \
@@ -28,11 +29,21 @@
  * blob [i.e size - sizeof(struct var_size_header) bytes], calculates the
  * checksum and compares it with value read from the header.
  */
+#ifdef CONFIG_ARCH_S5PC1XX
+//BL1 Header (16byte) for s5pv210
+struct var_size_header {
+	uint32_t spl_size;
+	uint32_t reserved;
+	uint32_t spl_checksum;
+	uint32_t reserved1;
+};
+#else
 struct var_size_header {
 	uint32_t spl_size;
 	uint32_t spl_checksum;
 	uint32_t reserved[2];
 };
+#endif
 
 static const char *prog_name;
 
