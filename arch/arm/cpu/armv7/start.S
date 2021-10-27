@@ -114,15 +114,22 @@ switch_to_hypervisor_ret:
 #endif
 #endif
 
+	mov r0, #0x1
+	bl wdg_led_status
+
 	/* the mask ROM code should have PLL and others stable */
 #if !CONFIG_IS_ENABLED(SKIP_LOWLEVEL_INIT)
 #ifdef CONFIG_CPU_V7A
 	bl	cpu_init_cp15
 #endif
+	mov r0, #0x2
+	bl wdg_led_status
 #if !CONFIG_IS_ENABLED(SKIP_LOWLEVEL_INIT_ONLY)
 	bl	cpu_init_crit
 #endif
 #endif
+	mov r0, #0x3
+	bl wdg_led_status
 
 	bl	_main
 

@@ -15,6 +15,7 @@ config TARGET_S5P_WDG
 	select OF_CONTROL
 	select BLK
 	select DM_MMC
+	select SUPPORT_SPL
 
 config TARGET_SMDKC100
 	bool "Support smdkc100 board"

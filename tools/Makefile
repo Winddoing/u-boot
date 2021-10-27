@@ -215,6 +215,7 @@ HOSTLDLIBS_preload_check_sign += \
 
 hostprogs-always-$(CONFIG_EXYNOS5250) += mkexynosspl
 hostprogs-always-$(CONFIG_EXYNOS5420) += mkexynosspl
+hostprogs-$(CONFIG_S5PC110) += mkexynosspl
 HOSTCFLAGS_mkexynosspl.o := -pedantic
 
 HOSTCFLAGS_kwboot.o += -pthread
