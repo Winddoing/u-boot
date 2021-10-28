@@ -30,4 +30,6 @@ ENTRY(wdg_led_status)
 	orr r3, r2, r3
 
 	str r3, [r4]            /* 设置相应的GPH0_1~GPH0_3为高电平 */
+
+	mov	pc, lr
 ENDPROC(wdg_led_status)
