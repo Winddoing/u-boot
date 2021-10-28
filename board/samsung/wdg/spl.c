@@ -65,7 +65,7 @@ void board_init_f(ulong dummy)
 	if(val == DDR_TEST_CODE) {
 		wdg_led_status(0x7);
 	} else {
-		wdg_led_status(0x5);
+		wdg_led_status(0xa);
 		while(1);
 	}
 

@@ -37,7 +37,7 @@ save_defconfig() {
 burn_uboot() {
 	echo "Burn u-boot"
 	local spl_bin="spl/wdg-spl.bin"
-	local uboot_bin=""
+	local uboot_bin="u-boot.bin"
 	local sd_dev="/dev/sda"
 
 	if [ ! -f $spl_bin ]; then
@@ -52,8 +52,7 @@ burn_uboot() {
 
 	set -x
 	sudo dd if=$spl_bin of=$sd_dev bs=512 seek=1
-	sudo dd if=../test/led_count/led.bin of=$sd_dev bs=512 seek=49
-	#sudo dd if=u-boot.bin of=$sd_dev bs=512 seek=49
+	sudo dd if=$uboot_bin of=$sd_dev bs=512 seek=49
 
 	sync
 	set +x
