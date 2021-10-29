@@ -91,6 +91,8 @@ clbss_l:cmp	r0, r1			/* while not at end of BSS */
 
 ENTRY(_main)
 
+	mov r0, #0x4
+	bl wdg_led_status
 /* Call arch_very_early_init before initializing C runtime environment. */
 #if CONFIG_IS_ENABLED(ARCH_VERY_EARLY_INIT)
 	bl	arch_very_early_init
@@ -120,6 +122,9 @@ ENTRY(_main)
 #if defined(CONFIG_XPL_BUILD) && defined(CONFIG_SPL_EARLY_BSS)
 	CLEAR_BSS
 #endif
+
+	mov r0, #0x5
+	bl wdg_led_status
 
 	mov	r0, #0
 	bl	board_init_f
@@ -182,6 +187,8 @@ here:
 	movne	sp, r0
 	movne	r9, r0
 # endif
+	mov r0, #0x7
+	bl wdg_led_status
 
 	/* call board_init_r(gd_t *id, ulong dest_addr) */
 	mov     r0, r9                  /* gd_t */
@@ -191,6 +198,8 @@ here:
 	ldr	lr, =board_init_r	/* this is auto-relocated! */
 	bx	lr
 #else
+	mov r0, #0x8
+	bl wdg_led_status
 	ldr	pc, =board_init_r	/* this is auto-relocated! */
 #endif
 	/* we should not return here. */
