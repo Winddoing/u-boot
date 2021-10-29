@@ -15,6 +15,7 @@
 #define CONFIG_S5P		1	/* which is in a S5P Family */
 #define CONFIG_S5PC110		1	/* which is in a S5PC110 */
 
+#define DEBUG
 
 #include <linux/sizes.h>
 #include <asm/arch/cpu.h>		/* get chip and board defs */
