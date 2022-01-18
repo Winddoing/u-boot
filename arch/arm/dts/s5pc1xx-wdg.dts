@@ -29,4 +29,28 @@
 		reg = <0xe2900000 0x100>;
 		id = <0>;
 	};
+
+	vddvario: regulator-vddvario {
+		  compatible = "regulator-fixed";
+		  regulator-name = "vddvario";
+		  regulator-always-on;
+	};
+
+	vdd33a: regulator-vdd33a {
+		compatible = "regulator-fixed";
+		regulator-name = "vdd33a";
+		regulator-always-on;
+	};
+
+	eth0@0xa8000000 {
+		compatible = "smsc,lan9221","smsc,lan9115";
+		reg = <0xa8000000 0xff>;
+		phy-mode = "mii";
+		bank-width = <2>;
+		vddvario-supply = <&vddvario>;
+		vdd33a-supply = <&vdd33a>;
+		reg-io-width = <2>;
+		smsc,save-mac-address;
+	};
+
 };
