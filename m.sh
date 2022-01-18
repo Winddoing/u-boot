@@ -18,6 +18,8 @@ make_uboot() {
 	make clean
 	make s5p_wdg_defconfig
 	make -j`nproc`
+	ls -lsh spl/wdg-spl.bin
+	ls -lsh u-boot.bin
 	ctags -R ./*
 	cp -arpv u-boot.bin ~/tftprootfs/
 

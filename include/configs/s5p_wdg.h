@@ -16,7 +16,7 @@
 #define CONFIG_S5PC110		1	/* which is in a S5PC110 */
 
 #define DEBUG
-#define LOG_DEBUG
+//#define LOG_DEBUG
 
 #include <linux/sizes.h>
 #include <asm/arch/cpu.h>		/* get chip and board defs */

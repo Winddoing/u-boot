@@ -22,7 +22,58 @@
 #include <usb_mass_storage.h>
 #include <asm/mach-types.h>
 
+#include "qt210_val.h"
+
 DECLARE_GLOBAL_DATA_PTR;
+
+/* ------------------------------------------------------------------------- */
+#define SMSC9220_Tacs	(0x0)	// 0clk		address set-up
+#define SMSC9220_Tcos	(0x4)	// 4clk		chip selection set-up
+#define SMSC9220_Tacc	(0xe)	// 14clk	access cycle
+#define SMSC9220_Tcoh	(0x1)	// 1clk		chip selection hold
+#define SMSC9220_Tah	(0x4)	// 4clk		address holding time
+#define SMSC9220_Tacp	(0x6)	// 6clk		page mode access cycle
+#define SMSC9220_PMC	(0x0)	// normal(1data)page mode configuration
+
+#define SROM_DATA16_WIDTH(x)	(1<<((x*4)+0))
+#define SROM_ADDR_MODE_16BIT(x)	(1<<((x*4)+1))
+#define SROM_WAIT_ENABLE(x)	(1<<((x*4)+2))
+#define SROM_BYTE_ENABLE(x)	(1<<((x*4)+3))
+
+/*
+ * Miscellaneous platform dependent initialisations
+ */
+static void smsc9220_pre_init(int bank_num)
+{
+	unsigned int tmp;
+//	unsigned char smc_bank_num=1;
+
+	/* gpio configuration */
+	tmp = MP01CON_REG;
+	tmp &= ~(0xf << bank_num*4);
+	tmp |= (0x2 << bank_num*4);
+	MP01CON_REG = tmp;
+
+	tmp = SROM_BW_REG;
+	tmp &= ~(0xF<<(bank_num * 4));
+	tmp |= SROM_DATA16_WIDTH(bank_num);
+	tmp |= SROM_ADDR_MODE_16BIT(bank_num);
+	SROM_BW_REG = tmp;
+
+	if(bank_num == 0)
+		SROM_BC0_REG = ((SMSC9220_Tacs<<28)|(SMSC9220_Tcos<<24)|(SMSC9220_Tacc<<16)|(SMSC9220_Tcoh<<12)|(SMSC9220_Tah<<8)|(SMSC9220_Tacp<<4)|(SMSC9220_PMC));
+	else if(bank_num == 1)
+		SROM_BC1_REG = ((SMSC9220_Tacs<<28)|(SMSC9220_Tcos<<24)|(SMSC9220_Tacc<<16)|(SMSC9220_Tcoh<<12)|(SMSC9220_Tah<<8)|(SMSC9220_Tacp<<4)|(SMSC9220_PMC));
+	else if(bank_num == 2)
+		SROM_BC2_REG = ((SMSC9220_Tacs<<28)|(SMSC9220_Tcos<<24)|(SMSC9220_Tacc<<16)|(SMSC9220_Tcoh<<12)|(SMSC9220_Tah<<8)|(SMSC9220_Tacp<<4)|(SMSC9220_PMC));
+	else if(bank_num == 3)
+		SROM_BC3_REG = ((SMSC9220_Tacs<<28)|(SMSC9220_Tcos<<24)|(SMSC9220_Tacc<<16)|(SMSC9220_Tcoh<<12)|(SMSC9220_Tah<<8)|(SMSC9220_Tacp<<4)|(SMSC9220_PMC));
+	else if(bank_num == 4)
+		SROM_BC3_REG = ((SMSC9220_Tacs<<28)|(SMSC9220_Tcos<<24)|(SMSC9220_Tacc<<16)|(SMSC9220_Tcoh<<12)|(SMSC9220_Tah<<8)|(SMSC9220_Tacp<<4)|(SMSC9220_PMC));
+	else if(bank_num == 5)
+		SROM_BC3_REG = ((SMSC9220_Tacs<<28)|(SMSC9220_Tcos<<24)|(SMSC9220_Tacc<<16)|(SMSC9220_Tcoh<<12)|(SMSC9220_Tah<<8)|(SMSC9220_Tacp<<4)|(SMSC9220_PMC));
+}
+
 
 u32 get_board_rev(void)
 {
@@ -31,6 +82,8 @@ u32 get_board_rev(void)
 
 int board_init(void)
 {
+	smsc9220_pre_init(5);
+
 	/* Set Initial global variables */
 	gd->bd->bi_arch_number = MACH_TYPE_GONI;
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
