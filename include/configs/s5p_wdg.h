@@ -144,6 +144,13 @@
 	"opts=always_resume=1\0" \
 	"dfu_alt_info=" CONFIG_DFU_ALT "\0"
 
+#ifdef CONFIG_SMC911X
+#	define CONFIG_IPADDR	192.168.2.22
+#	define CONFIG_NETMASK	255.255.255.0
+#	define CONFIG_SERVERIP	192.168.2.2
+#	define CONFIG_GATEWAYIP	192.168.2.1
+#endif/*CONFIG_SMC911X*/
+
 #define CONFIG_SYS_PBSIZE	384	/* Print Buffer Size */
 /* memtest works on */
 #define CONFIG_SYS_LOAD_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x4000000)
