@@ -96,8 +96,8 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS					\
 	"tftpboot=" \
-		"tftp 20000000 s5pv210-wdg.dtb; tftpboot 20008000 zImage;"\
-		"fdt addr 20000000; bootz 20008000\0" \
+		"tftp 40000000 s5pv210-wdg.dtb; tftpboot 20008000 zImage;"\
+		"fdt addr 40000000; bootz 20008000 - 40000000\0" \
 	"ramboot=" \
 		"set bootargs " CONFIG_RAMDISK_BOOT \
 		"initrd=0x33000000,8M ramdisk=8192\0" \
