@@ -14,7 +14,7 @@ CONFIG_SPL=y
 CONFIG_ENV_VARS_UBOOT_CONFIG=y
 # CONFIG_AUTOBOOT is not set
 CONFIG_USE_BOOTARGS=y
-CONFIG_BOOTARGS="root=/dev/mtdblock8 rootfstype=ext4 ${console} ${meminfo} ${mtdparts}"
+CONFIG_BOOTARGS="console=ttySAC0,115200n8 earlyprintk"
 CONFIG_SYS_CONSOLE_IS_IN_ENV=y
 CONFIG_LOG=y
 CONFIG_LOG_MAX_LEVEL=9
