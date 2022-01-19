@@ -92,30 +92,12 @@
 
 #define CONFIG_COMMON_BOOT	"${console} ${meminfo} ${mtdparts}"
 
-#define CONFIG_UPDATEB	"updateb=onenand erase 0x0 0x100000;" \
-			" onenand write 0x32008000 0x0 0x100000\0"
-
 #define CONFIG_MISC_COMMON
 
 #define CONFIG_EXTRA_ENV_SETTINGS					\
-	CONFIG_UPDATEB \
-	"updatek=" \
-		"onenand erase 0xc00000 0x600000;" \
-		"onenand write 0x31008000 0xc00000 0x600000\0" \
-	"updateu=" \
-		"onenand erase 0x01560000 0x1eaa0000;" \
-		"onenand write 0x32000000 0x1260000 0x8C0000\0" \
 	"bootk=" \
 		"run loaduimage;" \
 		"bootm 0x30007FC0\0" \
-	"flashboot=" \
-		"set bootargs root=/dev/mtdblock${bootblock} " \
-		"rootfstype=${rootfstype} ${opts} " \
-		"${lcdinfo} " CONFIG_COMMON_BOOT "; run bootk\0" \
-	"ubifsboot=" \
-		"set bootargs root=ubi0!rootfs rootfstype=ubifs " \
-		"${opts} ${lcdinfo} " \
-		CONFIG_COMMON_BOOT "; run bootk\0" \
 	"tftpboot=" \
 		"set bootargs root=ubi0!rootfs rootfstype=ubifs " \
 		"${opts} ${lcdinfo} " CONFIG_COMMON_BOOT \
@@ -131,16 +113,13 @@
 	"bootchart=set opts init=/sbin/bootchartd; run bootcmd\0" \
 	"verify=n\0" \
 	"rootfstype=ext4\0" \
-	"console=console=ttySAC2,115200n8\0" \
+	"console=console=ttySAC0,115200n8\0" \
 	"meminfo=mem=80M mem=256M@0x40000000 mem=128M@0x50000000\0" \
 	"loaduimage=ext4load mmc ${mmcdev}:${mmcbootpart} 0x30007FC0 uImage\0" \
 	"mmcdev=0\0" \
 	"mmcbootpart=2\0" \
 	"mmcrootpart=5\0" \
 	"partitions=" PARTS_DEFAULT \
-	"bootblock=9\0" \
-	"ubiblock=8\0" \
-	"ubi=enabled\0" \
 	"opts=always_resume=1\0" \
 	"dfu_alt_info=" CONFIG_DFU_ALT "\0"
 
