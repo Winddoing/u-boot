@@ -85,7 +85,7 @@ int board_init(void)
 	smsc9220_pre_init(5);
 
 	/* Set Initial global variables */
-	gd->bd->bi_arch_number = MACH_TYPE_GONI;
+	gd->bd->bi_arch_number = 0xffffffff;
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 
 	return 0;
