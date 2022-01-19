@@ -85,7 +85,7 @@
 	"name="PARTS_CSC",size=150MiB,uuid=${uuid_gpt_"PARTS_CSC"};" \
 	"name="PARTS_UMS",size=-,uuid=${uuid_gpt_"PARTS_UMS"}\0" \
 
-#define CONFIG_BOOTCOMMAND	"run mmcboot"
+#define CONFIG_BOOTCOMMAND	"run tftpboot"
 
 #define CONFIG_RAMDISK_BOOT	"root=/dev/ram0 rw rootfstype=ext4" \
 		" ${console} ${meminfo}"
@@ -95,13 +95,9 @@
 #define CONFIG_MISC_COMMON
 
 #define CONFIG_EXTRA_ENV_SETTINGS					\
-	"bootk=" \
-		"run loaduimage;" \
-		"bootm 0x30007FC0\0" \
 	"tftpboot=" \
-		"set bootargs root=ubi0!rootfs rootfstype=ubifs " \
-		"${opts} ${lcdinfo} " CONFIG_COMMON_BOOT \
-		"; tftp 0x30007FC0 uImage; bootm 0x30007FC0\0" \
+		"tftp 20000000 s5pv210-wdg.dtb; tftpboot 20008000 zImage;"\
+		"fdt addr 20000000; bootz 20008000\0" \
 	"ramboot=" \
 		"set bootargs " CONFIG_RAMDISK_BOOT \
 		"initrd=0x33000000,8M ramdisk=8192\0" \
@@ -113,7 +109,7 @@
 	"bootchart=set opts init=/sbin/bootchartd; run bootcmd\0" \
 	"verify=n\0" \
 	"rootfstype=ext4\0" \
-	"console=console=ttySAC0,115200n8\0" \
+	"console=console=ttySAC0,115200n8 earlyprintk\0" \
 	"meminfo=mem=80M mem=256M@0x40000000 mem=128M@0x50000000\0" \
 	"loaduimage=ext4load mmc ${mmcdev}:${mmcbootpart} 0x30007FC0 uImage\0" \
 	"mmcdev=0\0" \
