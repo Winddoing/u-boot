@@ -89,13 +89,17 @@
 
 #define CONFIG_RAMDISK_BOOT	"root=/dev/ram0 rw ${console}"
 
-#define CONFIG_COMMON_BOOT	"${console} ${mtdparts}"
+#define CONFIG_COMMON_BOOT	"${console}"
 
 #define CONFIG_MISC_COMMON
 
 #define CONFIG_EXTRA_ENV_SETTINGS					\
 	"tftpboot=" \
-		"tftp 40000000 s5pv210-wdg.dtb; tftpboot 20008000 zImage;"\
+		"setenv bootargs root=/dev/nfs rw " \
+		"nfsroot=192.168.2.2:/home/wqshao/nfs/rootfs,tcp,nfsvers=3,nolock " \
+		"ip=192.168.2.3:192.168.2.2:192.168.2.1:255.255.255.0 ::eth0:off " \
+		CONFIG_COMMON_BOOT \
+		" tftp 40000000 s5pv210-wdg.dtb; tftpboot 20008000 zImage; "\
 		"fdt addr 40000000; bootz 20008000 - 40000000\0" \
 	"ramboot=" \
 		"set bootargs " CONFIG_RAMDISK_BOOT \
