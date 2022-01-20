@@ -87,10 +87,9 @@
 
 #define CONFIG_BOOTCOMMAND	"run tftpboot"
 
-#define CONFIG_RAMDISK_BOOT	"root=/dev/ram0 rw rootfstype=ext4" \
-		" ${console} ${meminfo}"
+#define CONFIG_RAMDISK_BOOT	"root=/dev/ram0 rw ${console}"
 
-#define CONFIG_COMMON_BOOT	"${console} ${meminfo} ${mtdparts}"
+#define CONFIG_COMMON_BOOT	"${console} ${mtdparts}"
 
 #define CONFIG_MISC_COMMON
 
@@ -110,7 +109,6 @@
 	"verify=n\0" \
 	"rootfstype=ext4\0" \
 	"console=console=ttySAC0,115200n8 earlyprintk\0" \
-	"meminfo=mem=80M mem=256M@0x40000000 mem=128M@0x50000000\0" \
 	"loaduimage=ext4load mmc ${mmcdev}:${mmcbootpart} 0x30007FC0 uImage\0" \
 	"mmcdev=0\0" \
 	"mmcbootpart=2\0" \
