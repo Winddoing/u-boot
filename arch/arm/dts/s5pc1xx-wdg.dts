@@ -50,7 +50,7 @@
 		vddvario-supply = <&vddvario>;
 		vdd33a-supply = <&vdd33a>;
 		reg-io-width = <2>;
-		smsc,save-mac-address;
+		mac-address = [00 00 de ad be ef];
 	};
 
 	sdhci0: sdhci@0xeb000000 {
