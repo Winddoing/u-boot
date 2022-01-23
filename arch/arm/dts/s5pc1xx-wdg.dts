@@ -53,4 +53,13 @@
 		smsc,save-mac-address;
 	};
 
+	sdhci0: sdhci@0xeb000000 {
+		compatible = "samsung,exynos4412-sdhci";
+		reg = <0xeb000000 0x1000>;
+		periph_id = <75>;
+		samsung,bus-width = <4>;
+		max-frequency = <50000000>;
+		cap-sd-highspeed;
+		no-1-8-v;
+	};
 };
