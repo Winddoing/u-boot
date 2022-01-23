@@ -21,7 +21,7 @@ u32 spl_boot_device(void)
 #define MOVI_BL1_SDCARD_POS		512 /* 512 bytes */
 #define MOVI_BL1_SIZE           (8 * 1024) /* 8KB */
 #define MOVI_BL1_BLKCNT         (MOVI_BL1_SIZE / MOVI_BLKSIZE)        /* 16 sections */
-#define MOVI_BL1_ENV_BLKCNT     (CONFIG_ENV_SIZE / MOVI_BLKSIZE)   /* CONFIG_ENV_SIZE defined in qt210.h, 32 sections */
+#define MOVI_BL1_ENV_BLKCNT     (CONFIG_ENV_SIZE / MOVI_BLKSIZE)   /* CONFIG_ENV_SIZE=0x4000 defined, 32 sections */
 
 #define MOVI_BL2_SDCARD_POS		((MOVI_BL1_SDCARD_POS / MOVI_BLKSIZE) + MOVI_BL1_BLKCNT + MOVI_BL1_ENV_BLKCNT) /* place at forty-ninth section in sdcard 49*/
 #define MOVI_BL2_SIZE			(2* 512 * 1024) /* uboot.bin 512 KB */
