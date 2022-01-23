@@ -6,6 +6,14 @@
 # Description	:
 ##########################################################
 
+# SD card partition diagram
+#            0     1            17                49
+#            +-----+------------+-----------------+---------------------+
+#            | MBR |    SPL     |      ENV        |       uboot         |
+#            | 1blk|   16blk    |     32blk       |       2048blk       |
+#            +-----+------------+-----------------+---------------------+
+# size KB --> 512B      8KB            16KB                512KB
+
 export ARCH=arm
 export CROSS_COMPILE=arm-none-eabi-
 
