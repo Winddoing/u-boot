@@ -99,13 +99,13 @@
 		"nfsroot=192.168.2.2:/home/wqshao/nfs/rootfs,tcp,nfsvers=3,nolock " \
 		"ip=192.168.2.3:192.168.2.2:192.168.2.1:255.255.255.0 ::eth0:off " \
 		CONFIG_COMMON_BOOT \
-		";tftp 40000000 s5pv210-wdg.dtb; tftpboot 20008000 zImage; "\
-		"fdt addr 40000000; bootz 20008000 - 40000000\0" \
+		";tftp 30000000 s5pv210-wdg.dtb; tftpboot 20000000 zImage; "\
+		"fdt addr 30000000; bootz 20000000 - 30000000\0" \
 	"ramboot=" \
 		"set bootargs " CONFIG_RAMDISK_BOOT \
 		"initrd=0x33000000,8M ramdisk=8192 " \
-		";tftp 40000000 s5pv210-wdg.dtb; tftpboot 20008000 zImage; "\
-		"fdt addr 40000000; bootz 20008000 - 40000000\0" \
+		";tftp 30000000 s5pv210-wdg.dtb; tftpboot 20000000 zImage; "\
+		"fdt addr 30000000; bootz 20000000 - 40000000\0" \
 	"mmcboot=" \
 		"set bootargs root=/dev/mmcblk${mmcdev}p${mmcrootpart} " \
 		"rootfstype=${rootfstype} ${opts} ${lcdinfo} " \
@@ -137,7 +137,7 @@
 /* Goni has 2 banks of DRAM, but swap the bank */
 #define PHYS_SDRAM_1		CONFIG_SYS_SDRAM_BASE	/* OneDRAM Bank #0 */
 #define PHYS_SDRAM_1_SIZE	(256 << 20)		/* 256 MB in Bank #0 */
-#define PHYS_SDRAM_2		0x40000000		/* mDDR DMC1 Bank #1 */
+#define PHYS_SDRAM_2		(PHYS_SDRAM_1 + PHYS_SDRAM_1_SIZE)	/* mDDR DMC1 Bank #1 */
 #define PHYS_SDRAM_2_SIZE	(256 << 20)		/* 256 MB in Bank #1 */
 
 #define CONFIG_SYS_MONITOR_BASE		0x00000000
