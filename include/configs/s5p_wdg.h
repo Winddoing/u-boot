@@ -100,37 +100,36 @@
 		"ip=192.168.2.3:192.168.2.2:192.168.2.1:255.255.255.0 ::eth0:off " \
 		CONFIG_COMMON_BOOT \
 		";echo tftp boot ...;" \
-		";tftp 30000000 s5pv210-wdg.dtb; tftpboot 20000000 zImage; "\
-		"fdt addr 30000000; bootz 20000000 - 30000000\0" \
+		";tftp ${fdt_load_addr} s5pv210-wdg.dtb; tftpboot ${boot_load_addr} zImage; "\
+		"fdt addr ${fdt_load_addr}; bootz ${boot_load_addr} - ${fdt_load_addr}\0" \
 	"ramboot=" \
 		"set bootargs " CONFIG_RAMDISK_BOOT \
 		"initrd=0x33000000,8M ramdisk=8192 " \
 		";echo RAM boot ...;" \
-		";tftp 30000000 s5pv210-wdg.dtb; tftpboot 20000000 zImage; "\
-		"fdt addr 30000000; bootz 20000000 - 40000000\0" \
+		";tftp ${fdt_load_addr} s5pv210-wdg.dtb; tftpboot ${boot_load_addr} zImage; "\
+		"fdt addr ${fdt_load_addr}; bootz ${boot_load_addr} - ${fdt_load_addr}\0" \
 	"mmcfatboot=" \
 		"set bootargs " CONFIG_COMMON_BOOT \
 		" root=/dev/mmcblk0p2 rootfstype=ext4" \
 		";echo MMC fatload boot ...;" \
-		"fatload mmc 0:1 0x20000000 zImage; "\
-		"fatload mmc 0:1 0x30000000 s5pv210-wdg.dtb;" \
-		"bootz 0x20000000 - 0x30000000\0" \
+		"fatload mmc 0:1 ${boot_load_addr} zImage; "\
+		"fatload mmc 0:1 ${fdt_load_addr} s5pv210-wdg.dtb;" \
+		"bootz ${boot_load_addr} - ${fdt_load_addr}\0" \
 	"mmcrawboot=" \
 		"set bootargs " CONFIG_COMMON_BOOT \
 		" root=/dev/mmcblk0p2 rootfstype=ext4" \
 		";echo MMC raw boot ...;" \
-		"mmc read 0x20000000 0x1000 0x8000;" \
-		"mmc read 0x30000000 0x4800 0x80;" \
-		"bootz 0x20000000 - 0x30000000\0" \
+		"mmc read ${boot_load_addr} ${boot_start_blk} 0x8000;" \
+		"mmc read ${fdt_load_addr} ${fdt_start_blk} 0x80;" \
+		"bootz ${boot_load_addr} - ${fdt_load_addr}\0" \
 	"boottrace=setenv opts initcall_debug; run bootcmd\0" \
 	"bootchart=set opts init=/sbin/bootchartd; run bootcmd\0" \
 	"verify=n\0" \
-	"rootfstype=ext4\0" \
 	"console=console=ttySAC0,115200n8 earlyprintk\0" \
-	"loaduimage=ext4load mmc ${mmcdev}:${mmcbootpart} 0x30007FC0 uImage\0" \
-	"mmcdev=0\0" \
-	"mmcbootpart=2\0" \
-	"mmcrootpart=5\0" \
+	"boot_load_addr=0x20000000\0" \
+	"fdt_load_addr=0x30000000\0" \
+	"boot_start_blk=0x1000\0" \
+	"fdt_start_blk=0x4800\0" \
 	"partitions=" PARTS_DEFAULT \
 	"opts=always_resume=1\0" \
 	"dfu_alt_info=" CONFIG_DFU_ALT "\0"
