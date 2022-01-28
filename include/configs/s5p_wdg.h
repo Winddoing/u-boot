@@ -109,16 +109,19 @@
 		";tftp 30000000 s5pv210-wdg.dtb; tftpboot 20000000 zImage; "\
 		"fdt addr 30000000; bootz 20000000 - 40000000\0" \
 	"mmcfatboot=" \
-		"set bootargs " CONFIG_RAMDISK_BOOT \
+		"set bootargs " CONFIG_COMMON_BOOT \
 		" root=/dev/mmcblk0p2 rootfstype=ext4" \
 		";echo MMC fatload boot ...;" \
 		"fatload mmc 0:1 0x20000000 zImage; "\
 		"fatload mmc 0:1 0x30000000 s5pv210-wdg.dtb;" \
 		"bootz 0x20000000 - 0x30000000\0" \
-	"mmcboot=" \
-		"set bootargs root=/dev/mmcblk${mmcdev}p${mmcrootpart} " \
-		"rootfstype=${rootfstype} ${opts} ${lcdinfo} " \
-		CONFIG_COMMON_BOOT "; run bootk\0" \
+	"mmcrawboot=" \
+		"set bootargs " CONFIG_COMMON_BOOT \
+		" root=/dev/mmcblk0p2 rootfstype=ext4" \
+		";echo MMC raw boot ...;" \
+		"mmc read 0x20000000 0x1000 0x8000;" \
+		"mmc read 0x30000000 0x4800 0x80;" \
+		"bootz 0x20000000 - 0x30000000\0" \
 	"boottrace=setenv opts initcall_debug; run bootcmd\0" \
 	"bootchart=set opts init=/sbin/bootchartd; run bootcmd\0" \
 	"verify=n\0" \
