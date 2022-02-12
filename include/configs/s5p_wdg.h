@@ -122,12 +122,18 @@
 		"mmc read ${boot_load_addr} ${boot_start_blk} 0x8000;" \
 		"mmc read ${fdt_load_addr} ${fdt_start_blk} 0x80;" \
 		"bootz ${boot_load_addr} - ${fdt_load_addr}\0" \
+	"mmcfitboot="\
+		"set bootargs " CONFIG_COMMON_BOOT \
+		" root=/dev/mmcblk0p2 rootfstype=ext4" \
+		";echo MMC FIT boot ...;" \
+		"mmc read ${boot_load_addr} ${boot_start_blk} 0x8000;" \
+		"bootm ${boot_load_addr}\0" \
 	"boottrace=setenv opts initcall_debug; run bootcmd\0" \
 	"bootchart=set opts init=/sbin/bootchartd; run bootcmd\0" \
 	"verify=n\0" \
 	"console=console=ttySAC0,115200n8 earlyprintk\0" \
-	"boot_load_addr=0x20000000\0" \
-	"fdt_load_addr=0x30000000\0" \
+	"boot_load_addr=0x30000000\0" \
+	"fdt_load_addr=0x36000000\0" \
 	"boot_start_blk=0x1000\0" \
 	"fdt_start_blk=0x4800\0" \
 	"partitions=" PARTS_DEFAULT \
