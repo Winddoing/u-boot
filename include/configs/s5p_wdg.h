@@ -100,8 +100,8 @@
 		"ip=192.168.2.3:192.168.2.2:192.168.2.1:255.255.255.0 ::eth0:off " \
 		CONFIG_COMMON_BOOT \
 		";echo tftp boot ...;" \
-		";tftp ${fdt_load_addr} s5pv210-wdg.dtb; tftpboot ${boot_load_addr} zImage; "\
-		"fdt addr ${fdt_load_addr}; bootz ${boot_load_addr} - ${fdt_load_addr}\0" \
+		";tftpboot ${boot_load_addr} boot.itb; "\
+		"bootm ${boot_load_addr}\0" \
 	"ramboot=" \
 		"set bootargs " CONFIG_RAMDISK_BOOT \
 		"initrd=0x33000000,8M ramdisk=8192 " \
