@@ -17,6 +17,8 @@
 export ARCH=arm
 export CROSS_COMPILE=arm-none-eabi-
 
+BURN_SD_DEV="/dev/sda"
+
 make_uboot() {
 	echo "Build u-boot"
 	set -x
@@ -48,27 +50,26 @@ burn_uboot() {
 	echo "Burn u-boot"
 	local spl_bin="spl/wdg-spl.bin"
 	local uboot_bin="u-boot.bin"
-	local sd_dev="/dev/sda"
 
 	if [ ! -f $spl_bin ]; then
 		echo "spl bin($spl_bin) does not exist"
 		exit 255
 	fi
 
-	if [ ! -b $sd_dev ]; then
-		echo "SD dev($sd_dev) does not exist"
+	if [ ! -b $BURN_SD_DEV ]; then
+		echo "SD dev($BURN_SD_DEV) does not exist"
 		exit 255
 	fi
 
-	sudo fdisk $sd_dev -l | grep "SD" > /dev/null
+	sudo fdisk $BURN_SD_DEV -l | grep "SD" > /dev/null
 	if [ $? -ne 0 ]; then
-		echo "the current device($sd_dev) is not an SD card"
+		echo "the current device($BURN_SD_DEV) is not an SD card"
 		exit 255
 	fi
 
 	set -x
-	sudo dd if=$spl_bin of=$sd_dev bs=512 seek=1
-	sudo dd if=$uboot_bin of=$sd_dev bs=512 seek=49
+	sudo dd if=$spl_bin of=$BURN_SD_DEV bs=512 seek=1
+	sudo dd if=$uboot_bin of=$BURN_SD_DEV bs=512 seek=49
 
 	sync
 	set +x
