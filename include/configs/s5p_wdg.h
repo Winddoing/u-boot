@@ -85,8 +85,6 @@
 	"name="PARTS_CSC",size=150MiB,uuid=${uuid_gpt_"PARTS_CSC"};" \
 	"name="PARTS_UMS",size=-,uuid=${uuid_gpt_"PARTS_UMS"}\0" \
 
-#define CONFIG_BOOTCOMMAND	"run tftpboot"
-
 #define CONFIG_RAMDISK_BOOT	"root=/dev/ram0 rw ${console}"
 
 #define CONFIG_COMMON_BOOT	"${console}"
