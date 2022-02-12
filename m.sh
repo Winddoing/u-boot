@@ -60,6 +60,12 @@ burn_uboot() {
 		exit 255
 	fi
 
+	sudo fdisk $sd_dev -l | grep "SD" > /dev/null
+	if [ $? -ne 0 ]; then
+		echo "the current device($sd_dev) is not an SD card"
+		exit 255
+	fi
+
 	set -x
 	sudo dd if=$spl_bin of=$sd_dev bs=512 seek=1
 	sudo dd if=$uboot_bin of=$sd_dev bs=512 seek=49
