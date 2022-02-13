@@ -149,12 +149,6 @@
 /* memtest works on */
 #define CONFIG_SYS_LOAD_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x4000000)
 
-/* Goni has 2 banks of DRAM, but swap the bank */
-#define PHYS_SDRAM_1		CONFIG_SYS_SDRAM_BASE	/* OneDRAM Bank #0 */
-#define PHYS_SDRAM_1_SIZE	(256 << 20)		/* 256 MB in Bank #0 */
-#define PHYS_SDRAM_2		(PHYS_SDRAM_1 + PHYS_SDRAM_1_SIZE)	/* mDDR DMC1 Bank #1 */
-#define PHYS_SDRAM_2_SIZE	(256 << 20)		/* 256 MB in Bank #1 */
-
 #define CONFIG_SYS_MONITOR_BASE		0x00000000
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 
