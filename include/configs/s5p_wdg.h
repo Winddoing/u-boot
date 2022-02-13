@@ -28,9 +28,6 @@
 /* input clock of PLL: has 24MHz input clock at S5PC110 */
 #define CONFIG_SYS_CLK_FREQ_C110	24000000
 
-/* DRAM Base */
-#define CONFIG_SYS_SDRAM_BASE		0x20000000
-
 /* Text Base */
 
 #define CONFIG_SETUP_MEMORY_TAGS
@@ -147,7 +144,7 @@
 
 #define CONFIG_SYS_PBSIZE	384	/* Print Buffer Size */
 /* memtest works on */
-#define CONFIG_SYS_LOAD_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x4000000)
+#define CONFIG_SYS_LOAD_ADDR		(0x24000000)
 
 #define CONFIG_SYS_MONITOR_BASE		0x00000000
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
