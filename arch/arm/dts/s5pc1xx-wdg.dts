@@ -19,6 +19,12 @@
 		pinctrl0 = &pinctrl0;
 	};
 
+	memory {
+		device_type = "memory";
+		/* Base address 0x20000000, 2 banks, total size of 512GB */
+		reg = <0x20000000 0x10000000 0x30000000 0x10000000>;
+	};
+
 	pinctrl0: pinctrl@e0200000 {
 		compatible = "samsung,s5pc110-pinctrl";
 		reg = <0xe0200000 0x1000>;
