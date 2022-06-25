@@ -28,10 +28,9 @@ make_uboot() {
 	make clean
 	make s5p_wdg_defconfig
 	make -j`nproc`
-	ls -lsh spl/wdg-spl.bin
+	ls -ls spl/wdg-spl.bin
+	ls -ls spl/wdg-spl-with-mbr.bin
 	ls -lsh u-boot.bin
-	ctags -R ./*
-	cp -arpv u-boot.bin ~/tftprootfs/
 
 	set +x
 }
@@ -48,7 +47,7 @@ save_defconfig() {
 
 burn_uboot() {
 	echo "Burn u-boot"
-	local spl_bin="spl/wdg-spl.bin"
+	local spl_bin="spl/wdg-spl-with-mbr.bin"
 	local uboot_bin="u-boot.bin"
 
 	if [ ! -f $spl_bin ]; then
@@ -68,7 +67,7 @@ burn_uboot() {
 	fi
 
 	set -x
-	sudo dd if=$spl_bin of=$BURN_SD_DEV bs=512 seek=1
+	sudo dd if=$spl_bin of=$BURN_SD_DEV bs=512 seek=0
 	sudo dd if=$uboot_bin of=$BURN_SD_DEV bs=512 seek=49
 
 	sync
