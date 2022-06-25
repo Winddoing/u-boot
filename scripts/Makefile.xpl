@@ -266,6 +266,7 @@ INPUTS-y	+= $(obj)/$(SPL_BIN).bin $(obj)/$(SPL_BIN).sym
 
 ifneq ($(CONFIG_ARCH_EXYNOS)$(CONFIG_ARCH_S5PC1XX),)
 INPUTS-y	+= $(obj)/$(BOARD)-spl.bin
+INPUTS-y	+= $(obj)/$(BOARD)-spl-with-mbr.bin
 endif
 
 ifneq ($(CONFIG_TARGET_SOCFPGA_GEN5)$(CONFIG_TARGET_SOCFPGA_ARRIA10),)
@@ -389,6 +390,11 @@ $(obj)/$(BOARD)-spl.bin: $(obj)/u-boot-spl.bin
 	$(if $(wildcard $(objtree)/spl/board/samsung/$(BOARD)/tools/mk$(BOARD)spl),\
 	$(objtree)/spl/board/samsung/$(BOARD)/tools/mk$(BOARD)spl,\
 	$(objtree)/tools/mkexynosspl) $(VAR_SIZE_PARAM) $< $@
+
+$(obj)/$(BOARD)-spl-with-mbr.bin: $(obj)/$(BOARD)-spl.bin
+	$(objtree)/tools/mbr_creator $(CONFIG_BOARDDIR)/partitions.tab mbr.bin
+	cat mbr.bin $< > $@
+	#@rm mbr.bin
 endif
 
 $(obj)/u-boot-spl.ldr: $(obj)/u-boot-spl
