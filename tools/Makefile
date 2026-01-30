@@ -159,6 +159,7 @@ dumpimage-mkimage-objs := aisimage.o \
 			gpimage-common.o \
 			mtk_image.o \
 			mtk_nand_headers.o \
+			dfd_image.o \
 			$(ECDSA_OBJS-y) \
 			$(RSA_OBJS-y) \
 			$(AES_OBJS-y)
