@@ -1,0 +1,155 @@
+// SPDX-License-Identifier: GPL-2.0+ OR MIT
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+
+/dts-v1/;
+
+/ {
+	#address-cells = <2>;
+	#size-cells = <2>;
+	interrupt-parent = <&gic>;
+	compatible = "linux,dfd";
+
+	chosen {
+		stdout-path = &serial0;
+	};
+
+
+	binman: binman {
+		multiple-images;
+	};
+
+	cpus {
+		#address-cells = <2>;
+		#size-cells = <0>;
+
+		cpu0: cpu@0 {
+			compatible = "arm,cortex-a53";
+			device_type = "cpu";
+			reg = <0x0 0x0>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+		};
+
+		cpu1: cpu@1 {
+			compatible = "arm,cortex-a53";
+			device_type = "cpu";
+			reg = <0x0 0x1>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+		};
+
+		cpu2: cpu@2 {
+			compatible = "arm,cortex-a53";
+			device_type = "cpu";
+			reg = <0x0 0x2>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+		};
+
+		cpu3: cpu@3 {
+			compatible = "arm,cortex-a53";
+			device_type = "cpu";
+			reg = <0x0 0x3>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+		};
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x00000000 0x0 0x80000000>;  //2GB
+		status = "okay";
+	};
+
+
+	osc: osc {
+		bootph-all;
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <24000000>;
+		clock-accuracy = <50000>;
+		clock-output-names = "osc";
+	};
+
+	/* interrupt controller GIC V2 */
+	gic: interrupt-controller@f0000000 {
+		compatible = "arm,gic-400";
+		interrupt-controller;
+		#interrupt-cells = <3>;
+		#address-cells = <0>;
+		reg = <0x0 0xf0001000 0x0 0x1000>,	/* GICD */
+			<0x0 0xf0002000 0x0 0x2000>,	/* GICC */
+			<0x0 0xf0004000 0x0 0x1000>,	/* GICH */
+			<0x0 0xf0005000 0x0 0x1000>;	/* GICV */
+		interrupts = <GIC_PPI 9 (GIC_CPU_MASK_SIMPLE(4) |IRQ_TYPE_LEVEL_HIGH)>;
+	};
+
+	serial0: serial@f1800000 {
+		bootph-all;
+		compatible = "arm,pl011";
+		reg = <0x0 0xf1800000 0x0 0x1000>;
+		status = "okay";
+	};
+
+	sdhci0: sdhci@f1160000 {
+		bootph-all;
+		compatible = "dfd,sdhci";
+		reg = <0x0 0xf1160000 0x0 0x1000>;
+		interrupts = <GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&osc>;
+		status = "okay";
+	};
+
+};
+
+&binman {
+	spl {
+		filename = "dfd-u-boot-spl.bin";
+		mkimage {
+			args = "-n Dfd -T dfd -a fff01000 -e fff01000";
+			blob {
+				filename = "spl/u-boot-spl-dtb.bin";
+			};
+		};
+	};
+
+	itb {
+		filename = "u-boot.itb";
+		fit {
+			description = "Configuration to load U-Boot";
+			fit,fdt-list = "of-list";
+			#address-cells = <1>;
+			images {
+				uboot {
+					arch = "arm64";
+					compression = "none";
+					description = "U-Boot (64-bit)";
+					load = <CONFIG_TEXT_BASE>;
+					entry = <CONFIG_TEXT_BASE>;
+					type = "standalone";
+					uboot-blob {
+						filename = "u-boot-nodtb.bin";
+						type = "blob-ext";
+					};
+				};
+				fdt {
+					compression = "none";
+					description = "NAME";
+					type = "flat_dt";
+					uboot-fdt-blob {
+						filename = "u-boot.dtb";
+						type = "blob-ext";
+					};
+				};
+			};
+			configurations {
+				default = "conf";
+				conf {
+					description = "NAME";
+					fdt = "fdt";
+					firmware = "uboot";
+				};
+			};
+		};
+	};
+};

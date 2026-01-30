@@ -801,6 +801,14 @@ config ZYNQ_HISPD_BROKEN
 	help
 	  Set if high speed mode is broken.
 
+config MMC_SDHCI_DFD
+	bool "Dfd SDHCI controller support"
+	depends on OF_CONTROL
+	depends on ARCH_DFD
+	depends on MMC_SDHCI
+	help
+	  Support for SDHCI host controller on dfd ARM SoCs platform
+
 config MMC_SUNXI
 	bool "Allwinner sunxi SD/MMC Host Controller support"
 	depends on ARCH_SUNXI
