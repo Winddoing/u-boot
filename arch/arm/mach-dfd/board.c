@@ -17,6 +17,8 @@
 #include <linux/delay.h>
 #endif
 
+#include "common.h"
+
 #ifdef CONFIG_DISPLAY_CPUINFO
 int print_cpuinfo(void)
 {
@@ -37,6 +39,7 @@ int board_init(void)
 void board_debug_uart_init(void)
 {
 	debug("%s:%s:%d\n", __FILE__, __func__, __LINE__);
+	check_cpu_boot_mode();
 }
 #endif
 
@@ -64,6 +67,7 @@ int dram_init(void)
 int board_late_init(void)
 {
 	debug("%s:%s:%d\n", __FILE__, __func__, __LINE__);
+	check_cpu_boot_mode();
 	//TODO:
         return 0;
 }
@@ -102,3 +106,8 @@ static struct mm_region dfd_mem_map[] = {
 };
 struct mm_region *mem_map = dfd_mem_map;
 
+void board_cleanup_before_linux(void)
+{
+	debug("%s:%s:%d\n", __FILE__, __func__, __LINE__);
+	check_cpu_boot_mode();
+}

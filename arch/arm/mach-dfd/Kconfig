@@ -13,7 +13,7 @@ config DFD_CONFIG
 	bool "DFD config"
 	default y
 	select ARM64
-	select GICV2
+	#select GICV2 #qemu中的GICv2，如果在uboot中初始化过了，内核启动时将无法上报中断
 	select BINMAN
 	select OF_CONTROL
 	select DM_SERIAL
