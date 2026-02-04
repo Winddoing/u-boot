@@ -9,10 +9,6 @@
 #ifndef __DFD_H__
 #define __DFD_H__
 
-/* Interrupt controller */
-#define GICD_BASE                       (0xf0000000 + 0x1000)
-#define GICC_BASE                       (0xf0000000 + 0x2000)
-
 #define CFG_EXTRA_ENV_SETTINGS \
 	"mmcboot=echo Booting from mmc ...; " \
 		 "mmc read 0x3000000 0x800 0x8000;" \

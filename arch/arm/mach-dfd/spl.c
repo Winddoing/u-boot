@@ -10,6 +10,8 @@
 #include <hang.h>
 #include <log.h>
 
+#include "common.h"
+
 #if 0
 void board_boot_order(u32 *spl_boot_list)
 {
@@ -32,12 +34,14 @@ void board_init_f(ulong dummy)
 {
 	printf("uart early init in spl.\n");
 
+	check_cpu_boot_mode();
+
 	if (CONFIG_IS_ENABLED(OF_CONTROL)) {
 		int ret;
 
 		ret = spl_early_init();
 		if (ret) {
-			debug("spl_early_init() failed: %d\n", ret);
+			log_err("spl_early_init() failed: %d\n", ret);
 			hang();
 		}
 	}
@@ -56,4 +60,10 @@ void spl_board_init(void)
 	debug("%s:%s:%d\n", __FILE__, __func__, __LINE__);
 }
 
+void spl_board_prepare_for_boot(void)
+{
+	/* Before jumping to U-boot */
+	debug("%s:%s:%d\n", __FILE__, __func__, __LINE__);
+	check_cpu_boot_mode();
+}
 
