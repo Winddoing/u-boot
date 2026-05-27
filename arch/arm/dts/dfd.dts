@@ -2,10 +2,35 @@
 
 /dts-v1/;
 
+#if defined(CONFIG_SYSINFO_SMBIOS)
+#include "smbios_generic.dtsi"
+#endif
+
 / {
 	#address-cells = <2>;
 	#size-cells = <2>;
 	compatible = "linux,dfd";
+
+#if defined(CONFIG_SYSINFO_SMBIOS)
+	smbios {
+		smbios {
+			system {
+				version = "v1.0";
+				serial = "DFD-b7e02e85-96ce-47d8-9d8b-57ef41ad0a9d";
+			};
+			baseboard {
+				version = "rev-A";
+				serial = "BB-6f1fe81a-bccd-426e-bf56-2f51a81deaa2";
+			};
+			chassis {
+				version = "v1.0";
+			};
+			processor {
+				version = "Cortex-A53";
+			};
+		};
+	};
+#endif
 
 	chosen {
 		stdout-path = &serial0;

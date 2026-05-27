@@ -1,5 +1,8 @@
 if ARCH_DFD
 
+config SYS_VENDOR
+	default "dfd"
+
 config SYS_BOARD
 	default "dfd"
 
