@@ -19,6 +19,28 @@
 
 #include "common.h"
 
+#if CONFIG_IS_ENABLED(GENERATE_SMBIOS_TABLE)
+#include <smbios.h>
+#include <asm/global_data.h>
+#include <linux/sizes.h>
+
+static int dfd_install_smbios_table(void)
+{
+	ulong addr = DFD_SMBIOS_TABLE_BASE;
+
+	if (!write_smbios_table(addr)) {
+		log_err("Failed to write SMBIOS table\n");
+		return -EINVAL;
+	}
+
+	log_debug("SMBIOS tables written to 0x%lx\n", addr);
+	gd->arch.smbios_start = addr;
+
+	return 0;
+}
+EVENT_SPY_SIMPLE(EVT_LAST_STAGE_INIT, dfd_install_smbios_table);
+#endif
+
 #ifdef CONFIG_DISPLAY_CPUINFO
 int print_cpuinfo(void)
 {

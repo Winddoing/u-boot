@@ -11,6 +11,8 @@ config ARM64
 	select PHYS_64BIT
 	select SYS_CACHE_SHIFT_6
 	imply SPL_SEPARATE_BSS
+	imply SYSINFO if GENERATE_SMBIOS_TABLE
+	imply SYSINFO_SMBIOS if GENERATE_SMBIOS_TABLE
 
 config ARM64_CRC32
 	bool "Enable support for CRC32 instruction"
