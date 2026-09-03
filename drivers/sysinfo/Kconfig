@@ -59,4 +59,10 @@ config SYSINFO_GPIO
 	  This ternary number is then mapped to a board revision name using
 	  device tree properties.
 
+config SYSINFO_DFD
+	bool "Enable sysinfo driver for the dfd"
+	depends on ARCH_DFD
+	default y if ARCH_DFD
+	help
+	  Support querying device information for dfd.
 endif
