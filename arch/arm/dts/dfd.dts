@@ -2,27 +2,28 @@
 
 /dts-v1/;
 
-#if defined(CONFIG_SYSINFO_SMBIOS)
-#include "smbios_generic.dtsi"
-#endif
-
 / {
 	#address-cells = <2>;
 	#size-cells = <2>;
 	compatible = "linux,dfd";
 
-#if defined(CONFIG_SYSINFO_SMBIOS)
-	smbios {
+	sysinfo {
+		compatible = "dfd,sysinfo";
+
 		smbios {
 			system {
-				version = "v1.0";
-				serial = "DFD-b7e02e85-96ce-47d8-9d8b-57ef41ad0a9d";
+				manufacturer = "Vx.dfd";
+				sku = "sku3";
 			};
 			baseboard {
+				manufacturer = "Vx.B";
+				product = "Tst";
+				asset-tag = "ABC123";
 				version = "rev-A";
-				serial = "BB-6f1fe81a-bccd-426e-bf56-2f51a81deaa2";
+				serial = "6f1fe81a-bccd-426e-bf56-2f51a81deaa2";
 			};
 			chassis {
+				manufacturer = "Vx.C";
 				version = "v1.0";
 			};
 			processor {
@@ -30,7 +31,6 @@
 			};
 		};
 	};
-#endif
 
 	chosen {
 		stdout-path = &serial0;
