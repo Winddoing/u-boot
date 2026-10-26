@@ -17,6 +17,24 @@
 #define DFD_SHARE_BASE	(DFD_SRAM_BASE)
 #define DFD_SHARE_SIZE	0x1000
 
+#ifdef CONFIG_ARMV8_SPIN_TABLE
+/****************************** SPIN TABLE Start ******************************/
+/*
+ * CPU release address.
+ * Note:
+ *      It is released in board_init
+ */
+#define CPU_RELEASE_ADDR	(DFD_SHARE_BASE + 0x0)
+
+/*
+ * CPU release flag.
+ * Secondary CPU execute WFE until it is set to be 1.
+ */
+#define CPU_RELEASE_FLAG	(DFD_SHARE_BASE + 0x10)
+/******************************* SPIN TABLE End *******************************/
+#endif
+
+
 /* SMBIOS regino is located at the end of the shared region */
 #define DFD_SMBIOS_TABLE_BASE	(DFD_SHARE_BASE + DFD_SHARE_SIZE - DFD_SMBIOS_TABLE_SIZE)
 #define DFD_SMBIOS_TABLE_SIZE	0x400

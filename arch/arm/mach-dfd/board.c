@@ -53,6 +53,29 @@ int print_cpuinfo(void)
 int board_init(void)
 {
 	debug("%s:%s:%d\n", __FILE__, __func__, __LINE__);
+
+#ifdef CONFIG_ARMV8_SPIN_TABLE
+	/*
+	 * Kick secondary CPU core, and let it run to relocated U-boot's
+	 * entry point (arch/arm/cpu/armv8/start.S -> _start).
+	 * Secondary CPU core will be blocked at "gic_wait_for_interrupt".
+	 */
+	writeq(gd->reloc_off + CONFIG_TEXT_BASE, CPU_RELEASE_ADDR);
+	writeq(1, CPU_RELEASE_FLAG);
+	writeq(1, CPU_RELEASE_FLAG + 0x08);
+	writeq(1, CPU_RELEASE_FLAG + 0x10);
+	writeq(1, CPU_RELEASE_FLAG + 0x18);
+	udelay(1);
+
+	asm volatile("sev");
+	/*
+	 * Secondary CPU core wait for SGI interrupt now.
+	 * Kick it, and let it run to spin_table_secondary_jump() and wait to be
+	 * woken up by linux kernel.
+	 */
+	smp_kick_all_cpus();
+#endif
+
 	return 0;
 }
 #endif
