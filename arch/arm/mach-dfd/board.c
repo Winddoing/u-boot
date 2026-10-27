@@ -28,12 +28,11 @@ static int dfd_install_smbios_table(void)
 {
 	ulong addr = DFD_SMBIOS_TABLE_BASE;
 
+	log_debug("SMBIOS tables written to 0x%lx\n", addr);
 	if (!write_smbios_table(addr)) {
 		log_err("Failed to write SMBIOS table\n");
 		return -EINVAL;
 	}
-
-	log_debug("SMBIOS tables written to 0x%lx\n", addr);
 	gd->arch.smbios_start = addr;
 
 	return 0;
