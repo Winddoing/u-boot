@@ -19,21 +19,31 @@
 
 #ifdef CONFIG_ARMV8_SPIN_TABLE
 /****************************** SPIN TABLE Start ******************************/
-/*
- * CPU release address.
- * Note:
- *      It is released in board_init
- */
-#define CPU_RELEASE_ADDR	(DFD_SHARE_BASE + 0x0)
 
 /*
- * CPU release flag.
- * Secondary CPU execute WFE until it is set to be 1.
+ * DFD SoC multi-core boot mechanism (defined by miniboot):
+ *
+ * - CPU_ENTRYPOINT: 0xFFF00000, holds jump address for secondary CPUs
+ * - CPU_HOLD_BASE:  0xFFF00008, per-CPU state registers
+ *   State address = CPU_HOLD_BASE + cpu_id * 8
+ *
+ * Secondary CPU startup (in miniboot plat_secondary_cold_boot_setup):
+ *   1. Read MPIDR_EL1 & 0xFF to get own CPU ID
+ *   2. Set state at CPU_HOLD_BASE + cpu_id * 8 to WAIT (0)
+ *   3. WFE loop until state becomes GO (1)
+ *   4. Load jump address from CPU_ENTRYPOINT and branch
  */
-#define CPU_RELEASE_FLAG	(DFD_SHARE_BASE + 0x10)
+#define DFD_CPU_ENTRYPOINT	0xFFF00000
+#define DFD_CPU_HOLD_BASE	0xFFF00008
+#define DFD_CPU_HOLD_STATE_GO	1
+
+/*
+ * Only for normal compilation to pass, the boot method of the slave core in U-boot,
+ * which uses the single address, is not employed.
+ * */
+#define CPU_RELEASE_ADDR       (DFD_SHARE_BASE + 0x0)
 /******************************* SPIN TABLE End *******************************/
 #endif
-
 
 /*
  * SMBIOS table location.

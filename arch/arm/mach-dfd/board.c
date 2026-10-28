@@ -13,6 +13,7 @@
 #include <linux/bitops.h>
 #include <linux/io.h>
 #include <debug_uart.h>
+#include <fdt_support.h>
 #ifdef CONFIG_ARMV8_SPIN_TABLE
 #include <linux/delay.h>
 #endif
@@ -49,29 +50,79 @@ int print_cpuinfo(void)
 #endif
 
 #ifdef CONFIG_BOARD_INIT
+
+/**
+ * dfd_get_cpu_count() - Get the number of CPU cores from device tree
+ *
+ * Walk the /cpus node and count all subnodes with device_type = "cpu".
+ *
+ * Return: Number of CPU cores, or 1 on error (safe fallback)
+ */
+static int dfd_get_cpu_count(void)
+{
+	int count = 0;
+	ofnode cpus;
+	ofnode node;
+	const char *type;
+
+	cpus = ofnode_path("/cpus");
+	if (!ofnode_valid(cpus))
+		return 1;
+
+	ofnode_for_each_subnode(node, cpus) {
+		type = ofnode_read_string(node, "device_type");
+		if (type && !strcmp(type, "cpu"))
+			count++;
+	}
+
+	return count > 0 ? count : 1;
+}
+
 int board_init(void)
 {
+	int cpu_count;
+	int i;
+
 	debug("%s:%s:%d\n", __FILE__, __func__, __LINE__);
 
 #ifdef CONFIG_ARMV8_SPIN_TABLE
+	cpu_count = dfd_get_cpu_count();
+	debug("CPU count: %d, entrypoint addr: 0x%lx(0x%x)\n", cpu_count,
+			gd->reloc_off + CONFIG_TEXT_BASE, CONFIG_TEXT_BASE);
+
+	/*
+	 * Write U-Boot entry point for secondary CPUs.
+	 * Secondary CPUs will jump to this address after being woken up.
+	 */
+	writeq(gd->reloc_off + CONFIG_TEXT_BASE, DFD_CPU_ENTRYPOINT);
+
+	/*
+	 * Wake up each secondary CPU by setting its hold state to GO.
+	 * State address = DFD_CPU_HOLD_BASE + cpu_id * 8
+	 * CPU 0 is primary, secondary CPUs start from 1.
+	 */
+	for (i = 1; i < cpu_count; i++) {
+		ulong hold_addr = DFD_CPU_HOLD_BASE + (ulong)i * 8;
+		writeq(DFD_CPU_HOLD_STATE_GO, hold_addr);
+		debug("Set CPU%d GO at 0x%lx\n", i, hold_addr);
+	}
+	udelay(1);
+
+	/* Wake up all waiting secondary CPUs */
+	asm volatile("sev");
+
 	/*
 	 * Kick secondary CPU core, and let it run to relocated U-boot's
 	 * entry point (arch/arm/cpu/armv8/start.S -> _start).
 	 * Secondary CPU core will be blocked at "gic_wait_for_interrupt".
-	 */
-	writeq(gd->reloc_off + CONFIG_TEXT_BASE, CPU_RELEASE_ADDR);
-	writeq(1, CPU_RELEASE_FLAG);
-	writeq(1, CPU_RELEASE_FLAG + 0x08);
-	writeq(1, CPU_RELEASE_FLAG + 0x10);
-	writeq(1, CPU_RELEASE_FLAG + 0x18);
-	udelay(1);
-
-	asm volatile("sev");
-	/*
+	 *
 	 * Secondary CPU core wait for SGI interrupt now.
 	 * Kick it, and let it run to spin_table_secondary_jump() and wait to be
 	 * woken up by linux kernel.
-	 */
+	 *
+	 * NOTE: The DFD platform has disabled GIC, and the function
+	 * smp_kick_all_cpus is an empty function.
+	*/
 	smp_kick_all_cpus();
 #endif
 
