@@ -3,10 +3,20 @@
 #include <dm.h>
 #include <sysinfo.h>
 #include <net.h>
+#include <smbios_def.h>
 #include <u-boot/uuid.h>
 
 #define DFD_INFO_MAGIC		('d' << 24 | 'f' << 16 | 'd' << 8 | 's')
 #define DFD_UUID_STR_LEN	(32)
+
+/* DFD processor information */
+#define DFD_CPU_SOCKET		"SoC-0"
+#define DFD_CPU_VENDOR		"ARM Limited"
+#define DFD_CPU_SERIAL		"DFD-CPU-001"
+#define DFD_CPU_ASSET_TAG	"DFD-CPU-TAG"
+#define DFD_CPU_PART_NUM	"CA53-DFD"
+#define DFD_CPU_MAX_FREQ_MHZ	1000
+#define DFD_CPU_CORE_COUNT	4
 
 struct dfd_info {
 	u32 magic;
@@ -76,6 +86,21 @@ static int sysinfo_dfd_get_str(struct udevice *dev, int id, size_t size,
 	case SYSID_SM_BASEBOARD_PRODUCT:
 		strlcpy(val, priv->info->baseboard_product, size);
 		break;
+	case SYSID_SM_PROCESSOR_SOCKET:
+		strlcpy(val, DFD_CPU_SOCKET, size);
+		break;
+	case SYSID_SM_PROCESSOR_MANUFACT:
+		strlcpy(val, DFD_CPU_VENDOR, size);
+		break;
+	case SYSID_SM_PROCESSOR_SN:
+		strlcpy(val, DFD_CPU_SERIAL, size);
+		break;
+	case SYSID_SM_PROCESSOR_ASSET_TAG:
+		strlcpy(val, DFD_CPU_ASSET_TAG, size);
+		break;
+	case SYSID_SM_PROCESSOR_PN:
+		strlcpy(val, DFD_CPU_PART_NUM, size);
+		break;
 	default:
 		return -EINVAL;
 	};
@@ -91,6 +116,38 @@ static int sysinfo_dfd_get_int(struct udevice *dev, int id, int *val)
 	switch (id) {
 	case SYSID_BOARD_RAM_SIZE_MB:
 		*val = priv->info->ddr_size_mb;
+		return 0;
+	case SYSID_SM_PROCESSOR_TYPE:
+		*val = SMBIOS_PROCESSOR_TYPE_CENTRAL;
+		return 0;
+	case SYSID_SM_PROCESSOR_STATUS:
+		/* Socket populated, CPU enabled */
+		*val = 0x41;
+		return 0;
+	case SYSID_SM_PROCESSOR_UPGRADE:
+		*val = SMBIOS_PROCESSOR_UPGRADE_NONE;
+		return 0;
+	case SYSID_SM_PROCESSOR_MAX_SPEED:
+		*val = DFD_CPU_MAX_FREQ_MHZ;
+		return 0;
+	case SYSID_SM_PROCESSOR_CUR_SPEED:
+		*val = DFD_CPU_MAX_FREQ_MHZ;
+		return 0;
+	case SYSID_SM_PROCESSOR_CORE_CNT:
+		*val = DFD_CPU_CORE_COUNT;
+		return 0;
+	case SYSID_SM_PROCESSOR_CORE_EN:
+		*val = DFD_CPU_CORE_COUNT;
+		return 0;
+	case SYSID_SM_PROCESSOR_THREAD_CNT:
+		*val = DFD_CPU_CORE_COUNT;
+		return 0;
+	case SYSID_SM_PROCESSOR_FAMILY:
+		*val = SMBIOS_PROCESSOR_FAMILY_ARMV8;
+		return 0;
+	case SYSID_SM_PROCESSOR_CHARA:
+		/* BIT(1): Unknown characteristics */
+		*val = 2;
 		return 0;
 	default:
 		return -EINVAL;

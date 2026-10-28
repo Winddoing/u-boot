@@ -35,9 +35,15 @@
 #endif
 
 
-/* SMBIOS regino is located at the end of the shared region */
-#define DFD_SMBIOS_TABLE_BASE	(DFD_SHARE_BASE + DFD_SHARE_SIZE - DFD_SMBIOS_TABLE_SIZE)
-#define DFD_SMBIOS_TABLE_SIZE	0x400
+/*
+ * SMBIOS table location.
+ *
+ * Must be in Normal memory (DDR), not Device memory (SRAM), to avoid
+ * unaligned access faults on packed structures containing u16 fields.
+ * DDR range: 0x0 ~ 0x80000000 (2GB)
+ */
+#define DFD_SMBIOS_TABLE_BASE	0x7FFFF000
+#define DFD_SMBIOS_TABLE_SIZE	0x1000
 
 #define CFG_EXTRA_ENV_SETTINGS \
 	"mmcboot=echo Booting from mmc ...; " \
